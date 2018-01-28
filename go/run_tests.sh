@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -e
-
 cd "$(dirname "$0")"
 
-go build ./cmd/minilisp
+set -ex
+
+./compile.sh
 exec ../tests/run_tests.py ./minilisp
