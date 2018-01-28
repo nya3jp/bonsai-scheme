@@ -54,22 +54,17 @@ func (pair *Pair) Boolean() bool {
 }
 
 func (pair *Pair) ToSlice() []Value {
-	reversedSlice := make([]Value, 0)
+	slice := []Value{}
 	var current Value = pair
 	for {
 		if _, ok := current.(*Null); ok {
 			break
 		} else if pair, ok := current.(*Pair); ok {
-			reversedSlice = append(reversedSlice, pair.Car)
+			slice = append(slice, pair.Car)
 			current = pair.Cdr
 		} else {
 			panic("not list")
 		}
-	}
-	n := len(reversedSlice)
-	slice := make([]Value, n)
-	for i, v := range(reversedSlice) {
-		slice[n - 1 - i] = v
 	}
 	return slice
 }
