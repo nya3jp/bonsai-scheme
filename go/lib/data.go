@@ -5,6 +5,7 @@ import "fmt"
 type Value interface {
 	fmt.Stringer
 	Boolean() bool
+	DeepEquals(other Value) bool
 }
 
 type Undef struct {}
@@ -17,6 +18,10 @@ func (value *Undef) String() string {
 
 func (value *Undef) Boolean() bool {
 	panic("not boolean")
+}
+
+func (value *Undef) DeepEquals(other Value) bool {
+	return value == other
 }
 
 type ListValue interface {
@@ -36,6 +41,10 @@ func (null *Null) Boolean() bool {
 	panic("not boolean")
 }
 
+func (null *Null) DeepEquals(other Value) bool {
+	return null == other
+}
+
 func (null *Null) ToSlice() []Value {
 	return make([]Value, 0)
 }
@@ -51,6 +60,13 @@ func (pair *Pair) String() string {
 
 func (pair *Pair) Boolean() bool {
 	panic("not boolean")
+}
+
+func (pair *Pair) DeepEquals(other Value) bool {
+	if otherPair, ok := other.(*Pair); ok {
+		return pair.Car.DeepEquals(otherPair.Car) && pair.Cdr.DeepEquals(otherPair.Cdr)
+	}
+	return false
 }
 
 func (pair *Pair) ToSlice() []Value {
@@ -97,6 +113,18 @@ func (value *Boolean) Boolean() bool {
 	return value.RawValue
 }
 
+func (value *Boolean) DeepEquals(other Value) bool {
+	return value == other
+}
+
+func MakeBoolean(rawValue bool) *Boolean {
+	if rawValue {
+		return TheTrue
+	} else {
+		return TheFalse
+	}
+}
+
 type Integer struct {
 	RawValue int
 }
@@ -109,6 +137,13 @@ func (value *Integer) Boolean() bool {
 	panic("not boolean")
 }
 
+func (value *Integer) DeepEquals(other Value) bool {
+	if otherValue, ok := other.(*Integer); ok {
+		return value.RawValue == otherValue.RawValue
+	}
+	return false
+}
+
 type Symbol struct {
 	Name string
 }
@@ -119,6 +154,13 @@ func (value *Symbol) String() string {
 
 func (value *Symbol) Boolean() bool {
 	panic("not boolean")
+}
+
+func (value *Symbol) DeepEquals(other Value) bool {
+	if otherValue, ok := other.(*Symbol); ok {
+		return value.Name == otherValue.Name
+	}
+	return false
 }
 
 var symbolPool = make(map[string]*Symbol)
