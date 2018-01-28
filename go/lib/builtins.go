@@ -135,53 +135,6 @@ func builtinEqCheck(args []Value) Value {
 	return MakeBoolean(args[0] == args[1])
 }
 
-func builtinEqualCheck(args []Value) Value {
-	if len(args) != 2 {
-		panic("args")
-	}
-	return MakeBoolean(args[0].DeepEquals(args[1]))
-}
-
-func builtinNullCheck(args []Value) Value {
-	if len(args) != 1 {
-		panic("args")
-	}
-	_, ok := args[0].(*Null)
-	return MakeBoolean(ok)
-}
-
-func builtinPairCheck(args []Value) Value {
-	if len(args) != 1 {
-		panic("args")
-	}
-	_, ok := args[0].(*Pair)
-	return MakeBoolean(ok)
-}
-
-func builtinBooleanCheck(args []Value) Value {
-	if len(args) != 1 {
-		panic("args")
-	}
-	_, ok := args[0].(*Boolean)
-	return MakeBoolean(ok)
-}
-
-func builtinIntegerCheck(args []Value) Value {
-	if len(args) != 1 {
-		panic("args")
-	}
-	_, ok := args[0].(*Integer)
-	return MakeBoolean(ok)
-}
-
-func builtinSymbolCheck(args []Value) Value {
-	if len(args) != 1 {
-		panic("args")
-	}
-	_, ok := args[0].(*Symbol)
-	return MakeBoolean(ok)
-}
-
 func builtinCons(args []Value) Value {
 	if len(args) != 2 {
 		panic("args")
@@ -216,10 +169,6 @@ func (fun *nativeFunction) String() string {
 	return fun.name
 }
 
-func (fun *nativeFunction) DeepEquals(other Value) bool {
-	return fun == other
-}
-
 func (fun *nativeFunction) Apply(args []Value) Value {
 	return fun.fun(args)
 }
@@ -239,12 +188,6 @@ var builtinMap = map[string]FunctionValue{
 	"or":       &nativeFunction{"or", builtinOr},
 	"not":      &nativeFunction{"not", builtinNot},
 	"eq?":      &nativeFunction{"eq?", builtinEqCheck},
-	"equal?":   &nativeFunction{"equal?", builtinEqualCheck},
-	"null?":    &nativeFunction{"null?", builtinNullCheck},
-	"pair?":    &nativeFunction{"pair?", builtinPairCheck},
-	"boolean?": &nativeFunction{"boolean?", builtinBooleanCheck},
-	"integer?": &nativeFunction{"integer?", builtinIntegerCheck},
-	"symbol?":  &nativeFunction{"symbol?", builtinSymbolCheck},
 	"cons":     &nativeFunction{"cons", builtinCons},
 	"car":      &nativeFunction{"car", builtinCar},
 	"cdr":      &nativeFunction{"cdr", builtinCdr},

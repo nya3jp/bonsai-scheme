@@ -10,10 +10,6 @@ class Value(abc.ABC):
         raise AssertionError('not function')
 
     @abc.abstractmethod
-    def __eq__(self, other: Any) -> bool:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
     def __str__(self) -> str:
         raise NotImplementedError()
 
@@ -36,10 +32,6 @@ class BooleanValue(Value):
     def boolean(self) -> bool:
         return self.raw_value
 
-    def __eq__(self, other: Any) -> bool:
-        return (isinstance(other, BooleanValue) and
-                other.raw_value == self.raw_value)
-
     def __str__(self) -> str:
         return '#t' if self.raw_value else '#f'
 
@@ -53,10 +45,6 @@ class IntegerValue(Value):
 
     def __init__(self, raw_value: int):
         self.raw_value = raw_value
-
-    def __eq__(self, other: Any) -> bool:
-        return (isinstance(other, IntegerValue) and
-                other.raw_value == self.raw_value)
 
     def __str__(self) -> str:
         return str(self.raw_value)
@@ -75,9 +63,6 @@ class SymbolValue(Value):
             pool[name] = value
         return pool[name]
 
-    def __eq__(self, other: Any) -> bool:
-        return other is self
-
     def __str__(self) -> str:
         return self.name
 
@@ -90,11 +75,6 @@ class PairValue(Value):
         self.car = car
         self.cdr = cdr
 
-    def __eq__(self, other: Any) -> bool:
-        return (isinstance(other, PairValue) and
-                other.car == self.car and
-                other.cdr == self.cdr)
-
     def __str__(self) -> str:
         # TODO: Prefer list styles.
         return '(%s . %s)' % (self.car, self.cdr)
@@ -106,9 +86,6 @@ class NullValue(Value):
             return NULL
         except NameError:
             return super().__new__(cls)
-
-    def __eq__(self, other: Any) -> bool:
-        return other is self
 
     def __str__(self) -> str:
         return '()'
@@ -125,9 +102,6 @@ class UndefinedValue(Value):
             return UNDEF
         except NameError:
             return super().__new__(cls)
-
-    def __eq__(self, other: Any) -> bool:
-        return other is self
 
     def __str__(self) -> str:
         return '#undef'
@@ -146,9 +120,6 @@ class FunctionValue(Value):
 
     def apply(self, args: List[Value]) -> Value:
         return self.native_func(args)
-
-    def __eq__(self, other: Any) -> bool:
-        return other is self
 
     def __str__(self) -> str:
         return '<func %s>' % self.name

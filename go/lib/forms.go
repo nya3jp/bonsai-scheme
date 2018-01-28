@@ -34,10 +34,6 @@ func (f *LambdaFunction) Boolean() bool {
 	panic("not boolean")
 }
 
-func (f *LambdaFunction) DeepEquals(other Value) bool {
-	return f == other
-}
-
 func (f *LambdaFunction) Apply(args []Value) Value {
 	env := makeEnv(f.parentEnv)
 	if len(f.params) != len(args) {

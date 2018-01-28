@@ -119,42 +119,6 @@ def _builtin_eq_check(args: List[data.Value]) -> data.Value:
     return data.BooleanValue(lhs is rhs)
 
 
-def _builtin_equal_check(args: List[data.Value]) -> data.Value:
-    assert len(args) == 2
-    lhs, rhs = args
-    return data.BooleanValue(lhs == rhs)
-
-
-def _builtin_null_check(args: List[data.Value]) -> data.Value:
-    assert len(args) == 1
-    value = args[0]
-    return data.BooleanValue(isinstance(value, data.NullValue))
-
-
-def _builtin_pair_check(args: List[data.Value]) -> data.Value:
-    assert len(args) == 1
-    value = args[0]
-    return data.BooleanValue(isinstance(value, data.PairValue))
-
-
-def _builtin_boolean_check(args: List[data.Value]) -> data.Value:
-    assert len(args) == 1
-    value = args[0]
-    return data.BooleanValue(isinstance(value, data.BooleanValue))
-
-
-def _builtin_integer_check(args: List[data.Value]) -> data.Value:
-    assert len(args) == 1
-    value = args[0]
-    return data.BooleanValue(isinstance(value, data.IntegerValue))
-
-
-def _builtin_symbol_check(args: List[data.Value]) -> data.Value:
-    assert len(args) == 1
-    value = args[0]
-    return data.BooleanValue(isinstance(value, data.SymbolValue))
-
-
 def _builtin_cons(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     return data.PairValue(args[0], args[1])
@@ -189,12 +153,6 @@ ALL_MAP: Dict[str, Callable[[List[data.Value]], data.Value]] = {
     'or': _builtin_or,
     'not': _builtin_not,
     'eq?': _builtin_eq_check,
-    'equal?': _builtin_equal_check,
-    'null?': _builtin_null_check,
-    'pair?': _builtin_pair_check,
-    'boolean?': _builtin_boolean_check,
-    'integer?': _builtin_integer_check,
-    'symbol?': _builtin_symbol_check,
     'cons': _builtin_cons,
     'car': _builtin_car,
     'cdr': _builtin_cdr,
