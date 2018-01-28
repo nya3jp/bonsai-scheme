@@ -26,7 +26,7 @@ func (env *Environment) Lookup(name string) *Variable {
 		return v
 	}
 	if env.Parent == nil {
-		panic("Name not found")
+		panic(fmt.Sprintf("Name not found: %s", name))
 	}
 	return env.Parent.Lookup(name)
 }

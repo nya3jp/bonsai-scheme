@@ -21,7 +21,7 @@ func skip(code string) string {
 }
 
 func makeQuote(value Value) Value {
-	return &Pair{MakeSymbol("quote"), value}
+	return ToListValue([]Value{MakeSymbol("quote"), value})
 }
 
 func parseValue(code string) (Value, string) {
