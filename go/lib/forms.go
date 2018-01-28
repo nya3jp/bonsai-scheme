@@ -30,10 +30,6 @@ func (f *LambdaFunction) String() string {
 	return f.name
 }
 
-func (f *LambdaFunction) Boolean() bool {
-	panic("not boolean")
-}
-
 func (f *LambdaFunction) Apply(args []Value) Value {
 	env := makeEnv(f.parentEnv)
 	if len(f.params) != len(args) {
@@ -85,7 +81,7 @@ func formIf(env *Environment, rawArgs []Value) Value {
 		panic("args")
 	}
 	testValue := env.Evaluate(rawArgs[0])
-	if testValue.Boolean() {
+	if testValue != TheFalse {
 		return env.Evaluate(rawArgs[1])
 	} else {
 		if len(rawArgs) == 3 {
@@ -103,7 +99,7 @@ func formCond(env *Environment, rawArgs []Value) Value {
 		}
 		if sym, ok := clause[0].(*Symbol); ok && sym.Name == "else" {
 			return env.Evaluate(clause[1])
-		} else if env.Evaluate(clause[0]).Boolean() {
+		} else if env.Evaluate(clause[0]) != TheFalse {
 			return env.Evaluate(clause[1])
 		}
 	}

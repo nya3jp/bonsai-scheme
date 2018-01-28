@@ -83,14 +83,14 @@ def _form_if(env: 'environments.Environment', args: List[data.Value]) -> data.Va
     false_expr = args[2] if len(args) == 3 else data.UNDEF
 
     test_value = env.evaluate(test_expr)
-    return env.evaluate(true_expr if test_value.boolean() else false_expr)
+    return env.evaluate(true_expr if test_value is not data.FALSE else false_expr)
 
 
 def _form_cond(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
     clauses = [data.to_native_list(arg) for arg in args]
     for clause in clauses:
         if (clause[0] == data.SymbolValue('else') or
-                env.evaluate(clause[0]).boolean()):
+                env.evaluate(clause[0]) is not data.FALSE):
             return _evaluate_body(env, clause[1:])
     return data.UNDEF
 

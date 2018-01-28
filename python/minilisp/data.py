@@ -3,9 +3,6 @@ from typing import Any, Callable, Dict, List, Union
 
 
 class Value(abc.ABC):
-    def boolean(self) -> bool:
-        raise AssertionError('not boolean')
-
     def apply(self, args: List['Value']) -> 'Value':
         raise AssertionError('not function')
 
@@ -28,9 +25,6 @@ class BooleanValue(Value):
             value = super().__new__(cls)
             value.raw_value = raw_value
             return value
-
-    def boolean(self) -> bool:
-        return self.raw_value
 
     def __str__(self) -> str:
         return '#t' if self.raw_value else '#f'

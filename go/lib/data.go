@@ -4,7 +4,6 @@ import "fmt"
 
 type Value interface {
 	fmt.Stringer
-	Boolean() bool
 }
 
 type Undef struct{}
@@ -13,10 +12,6 @@ var TheUndef = &Undef{}
 
 func (value *Undef) String() string {
 	return "#undef"
-}
-
-func (value *Undef) Boolean() bool {
-	panic("not boolean")
 }
 
 type ListValue interface {
@@ -32,10 +27,6 @@ func (null *Null) String() string {
 	return "()"
 }
 
-func (null *Null) Boolean() bool {
-	panic("not boolean")
-}
-
 func (null *Null) ToSlice() []Value {
 	return make([]Value, 0)
 }
@@ -47,10 +38,6 @@ type Pair struct {
 
 func (pair *Pair) String() string {
 	return fmt.Sprintf("(%v . %v)", pair.Car, pair.Cdr)
-}
-
-func (pair *Pair) Boolean() bool {
-	panic("not boolean")
 }
 
 func (pair *Pair) ToSlice() []Value {
@@ -93,10 +80,6 @@ func (value *Boolean) String() string {
 	}
 }
 
-func (value *Boolean) Boolean() bool {
-	return value.RawValue
-}
-
 func MakeBoolean(rawValue bool) *Boolean {
 	if rawValue {
 		return TheTrue
@@ -113,20 +96,12 @@ func (value *Integer) String() string {
 	return fmt.Sprintf("%d", value.RawValue)
 }
 
-func (value *Integer) Boolean() bool {
-	panic("not boolean")
-}
-
 type Symbol struct {
 	Name string
 }
 
 func (value *Symbol) String() string {
 	return value.Name
-}
-
-func (value *Symbol) Boolean() bool {
-	panic("not boolean")
 }
 
 var symbolPool = make(map[string]*Symbol)

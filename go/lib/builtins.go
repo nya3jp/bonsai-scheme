@@ -108,7 +108,7 @@ func builtinGte(args []Value) Value {
 func builtinAnd(args []Value) Value {
 	var result bool = true
 	for _, arg := range args {
-		result = result && arg.Boolean()
+		result = result && arg != TheFalse
 	}
 	return MakeBoolean(result)
 }
@@ -116,7 +116,7 @@ func builtinAnd(args []Value) Value {
 func builtinOr(args []Value) Value {
 	var result bool = false
 	for _, arg := range args {
-		result = result || arg.Boolean()
+		result = result || arg != TheFalse
 	}
 	return MakeBoolean(result)
 }
@@ -125,7 +125,7 @@ func builtinNot(args []Value) Value {
 	if len(args) != 1 {
 		panic("args")
 	}
-	return MakeBoolean(!args[0].(*Boolean).RawValue)
+	return MakeBoolean(!(args[0] != TheFalse))
 }
 
 func builtinEqCheck(args []Value) Value {
@@ -159,10 +159,6 @@ func builtinCdr(args []Value) Value {
 type nativeFunction struct {
 	name string
 	fun  func(args []Value) Value
-}
-
-func (fun *nativeFunction) Boolean() bool {
-	panic("not boolean")
 }
 
 func (fun *nativeFunction) String() string {

@@ -93,24 +93,21 @@ def _builtin_gte(args: List[data.Value]) -> data.Value:
 def _builtin_and(args: List[data.Value]) -> data.Value:
     result = True
     for value in args:
-        assert isinstance(value, data.BooleanValue), 'not boolean'
-        result = result and value.raw_value
+        result = result and value != data.FALSE
     return data.BooleanValue(result)
 
 
 def _builtin_or(args: List[data.Value]) -> data.Value:
     result = False
     for value in args:
-        assert isinstance(value, data.BooleanValue), 'not boolean'
-        result = result or value.raw_value
+        result = result or value != data.FALSE
     return data.BooleanValue(result)
 
 
 def _builtin_not(args: List[data.Value]) -> data.Value:
     assert len(args) == 1
     value = args[0]
-    assert isinstance(value, data.BooleanValue), 'not boolean'
-    return data.BooleanValue(not value.raw_value)
+    return data.BooleanValue(not (value != data.FALSE))
 
 
 def _builtin_eq_check(args: List[data.Value]) -> data.Value:
