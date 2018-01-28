@@ -15,7 +15,7 @@ func builtinAdd(args []Value) Value {
 		panic("no args")
 	}
 	var result int = 0
-	for _, arg := range(args) {
+	for _, arg := range args {
 		result += arg.(*Integer).RawValue
 	}
 	return &Integer{result}
@@ -26,7 +26,7 @@ func builtinSub(args []Value) Value {
 		panic("no args")
 	}
 	var result int = args[0].(*Integer).RawValue
-	for i, arg := range(args) {
+	for i, arg := range args {
 		if i == 0 {
 			continue
 		}
@@ -40,7 +40,7 @@ func builtinMul(args []Value) Value {
 		panic("no args")
 	}
 	var result int = 1
-	for _, arg := range(args) {
+	for _, arg := range args {
 		result *= arg.(*Integer).RawValue
 	}
 	return &Integer{result}
@@ -51,7 +51,7 @@ func builtinDiv(args []Value) Value {
 		panic("no args")
 	}
 	var result int = args[0].(*Integer).RawValue
-	for i, arg := range(args) {
+	for i, arg := range args {
 		if i == 0 {
 			continue
 		}
@@ -107,7 +107,7 @@ func builtinGte(args []Value) Value {
 
 func builtinAnd(args []Value) Value {
 	var result bool = true
-	for _, arg := range(args) {
+	for _, arg := range args {
 		result = result && arg.Boolean()
 	}
 	return MakeBoolean(result)
@@ -115,7 +115,7 @@ func builtinAnd(args []Value) Value {
 
 func builtinOr(args []Value) Value {
 	var result bool = false
-	for _, arg := range(args) {
+	for _, arg := range args {
 		result = result || arg.Boolean()
 	}
 	return MakeBoolean(result)
@@ -205,7 +205,7 @@ func builtinCdr(args []Value) Value {
 
 type nativeFunction struct {
 	name string
-	fun func(args []Value) Value
+	fun  func(args []Value) Value
 }
 
 func (fun *nativeFunction) Boolean() bool {
@@ -224,28 +224,28 @@ func (fun *nativeFunction) Apply(args []Value) Value {
 	return fun.fun(args)
 }
 
-var builtinMap = map[string]FunctionValue {
-	"print": &nativeFunction{"print", builtinPrint},
-	"+": &nativeFunction{"+", builtinAdd},
-	"-": &nativeFunction{"-", builtinSub},
-	"*": &nativeFunction{"*", builtinMul},
-	"/": &nativeFunction{"/", builtinDiv},
-	"=": &nativeFunction{"=", builtinEq},
-	"<": &nativeFunction{"<", builtinLt},
-	"<=": &nativeFunction{"<=", builtinLte},
-	">": &nativeFunction{">", builtinGt},
-	">=": &nativeFunction{">=", builtinGte},
-	"and": &nativeFunction{"and", builtinAnd},
-	"or": &nativeFunction{"or", builtinOr},
-	"not": &nativeFunction{"not", builtinNot},
-	"eq?": &nativeFunction{"eq?", builtinEqCheck},
-	"equal?": &nativeFunction{"equal?", builtinEqualCheck},
-	"null?": &nativeFunction{"null?", builtinNullCheck},
-	"pair?": &nativeFunction{"pair?", builtinPairCheck},
+var builtinMap = map[string]FunctionValue{
+	"print":    &nativeFunction{"print", builtinPrint},
+	"+":        &nativeFunction{"+", builtinAdd},
+	"-":        &nativeFunction{"-", builtinSub},
+	"*":        &nativeFunction{"*", builtinMul},
+	"/":        &nativeFunction{"/", builtinDiv},
+	"=":        &nativeFunction{"=", builtinEq},
+	"<":        &nativeFunction{"<", builtinLt},
+	"<=":       &nativeFunction{"<=", builtinLte},
+	">":        &nativeFunction{">", builtinGt},
+	">=":       &nativeFunction{">=", builtinGte},
+	"and":      &nativeFunction{"and", builtinAnd},
+	"or":       &nativeFunction{"or", builtinOr},
+	"not":      &nativeFunction{"not", builtinNot},
+	"eq?":      &nativeFunction{"eq?", builtinEqCheck},
+	"equal?":   &nativeFunction{"equal?", builtinEqualCheck},
+	"null?":    &nativeFunction{"null?", builtinNullCheck},
+	"pair?":    &nativeFunction{"pair?", builtinPairCheck},
 	"boolean?": &nativeFunction{"boolean?", builtinBooleanCheck},
 	"integer?": &nativeFunction{"integer?", builtinIntegerCheck},
-	"symbol?": &nativeFunction{"symbol?", builtinSymbolCheck},
-	"cons": &nativeFunction{"cons", builtinCons},
-	"car": &nativeFunction{"car", builtinCar},
-	"cdr": &nativeFunction{"cdr", builtinCdr},
+	"symbol?":  &nativeFunction{"symbol?", builtinSymbolCheck},
+	"cons":     &nativeFunction{"cons", builtinCons},
+	"car":      &nativeFunction{"car", builtinCar},
+	"cdr":      &nativeFunction{"cdr", builtinCdr},
 }

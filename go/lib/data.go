@@ -8,7 +8,7 @@ type Value interface {
 	DeepEquals(other Value) bool
 }
 
-type Undef struct {}
+type Undef struct{}
 
 var TheUndef = &Undef{}
 
@@ -29,7 +29,7 @@ type ListValue interface {
 	ToSlice() []Value
 }
 
-type Null struct {}
+type Null struct{}
 
 var TheNull = &Null{}
 
@@ -98,7 +98,7 @@ type Boolean struct {
 
 var (
 	TheFalse = &Boolean{false}
-	TheTrue = &Boolean{true}
+	TheTrue  = &Boolean{true}
 )
 
 func (value *Boolean) String() string {

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"io/ioutil"
 	"fmt"
 	"github.com/nya3jp/minilisp/go/lib"
+	"io/ioutil"
 	"os"
 )
 
@@ -17,7 +17,7 @@ func batchMain(filename string) {
 
 	exprs := lib.Parse(code)
 	env := lib.MakeTopLevelEnv()
-	for _, expr := range(exprs) {
+	for _, expr := range exprs {
 		env.Evaluate(expr)
 	}
 }

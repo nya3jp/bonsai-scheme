@@ -9,7 +9,7 @@ func formQuote(env *Environment, rawArgs []Value) Value {
 
 func evaluateBody(env *Environment, exprs []Value) Value {
 	var result Value = TheUndef
-	for _, expr := range(exprs) {
+	for _, expr := range exprs {
 		result = env.Evaluate(expr)
 	}
 	return result
@@ -21,9 +21,9 @@ func formBegin(env *Environment, rawArgs []Value) Value {
 
 type LambdaFunction struct {
 	parentEnv *Environment
-	name string
-	params []string
-	body []Value
+	name      string
+	params    []string
+	body      []Value
 }
 
 func (f *LambdaFunction) String() string {
@@ -43,7 +43,7 @@ func (f *LambdaFunction) Apply(args []Value) Value {
 	if len(f.params) != len(args) {
 		panic("wrong number of args")
 	}
-	for i, param := range(f.params) {
+	for i, param := range f.params {
 		arg := args[i]
 		env.Ensure(param).Value = arg
 	}
@@ -52,7 +52,7 @@ func (f *LambdaFunction) Apply(args []Value) Value {
 
 func makeLambdaFunction(env *Environment, name string, paramsValue ListValue, body []Value) *LambdaFunction {
 	params := []string{}
-	for _, value := range(paramsValue.ToSlice()) {
+	for _, value := range paramsValue.ToSlice() {
 		params = append(params, value.(*Symbol).Name)
 	}
 	return &LambdaFunction{env, name, params, body}
@@ -100,7 +100,7 @@ func formIf(env *Environment, rawArgs []Value) Value {
 }
 
 func formCond(env *Environment, rawArgs []Value) Value {
-	for _, clauseValue := range(rawArgs) {
+	for _, clauseValue := range rawArgs {
 		clause := clauseValue.(ListValue).ToSlice()
 		if len(clause) != 2 {
 			panic("args")
@@ -116,7 +116,7 @@ func formCond(env *Environment, rawArgs []Value) Value {
 
 func formLet(env *Environment, rawArgs []Value) Value {
 	letEnv := makeEnv(env)
-	for _, bindingValue := range(rawArgs[0].(ListValue).ToSlice()) {
+	for _, bindingValue := range rawArgs[0].(ListValue).ToSlice() {
 		binding := bindingValue.(ListValue).ToSlice()
 		if len(binding) != 2 {
 			panic("args")
@@ -129,7 +129,7 @@ func formLet(env *Environment, rawArgs []Value) Value {
 
 func formLetStar(env *Environment, rawArgs []Value) Value {
 	letEnv := makeEnv(env)
-	for _, bindingValue := range(rawArgs[0].(ListValue).ToSlice()) {
+	for _, bindingValue := range rawArgs[0].(ListValue).ToSlice() {
 		binding := bindingValue.(ListValue).ToSlice()
 		if len(binding) != 2 {
 			panic("args")

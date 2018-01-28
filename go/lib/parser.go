@@ -2,13 +2,13 @@ package lib
 
 import (
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 var (
-	skipRegexp = regexp.MustCompile(`^(\s+|;.*)+`)
-	tokenRegexp = regexp.MustCompile(`^[^\s);]+`)
+	skipRegexp   = regexp.MustCompile(`^(\s+|;.*)+`)
+	tokenRegexp  = regexp.MustCompile(`^[^\s);]+`)
 	numberRegexp = regexp.MustCompile(`^-?[0-9]+$`)
 )
 

@@ -8,7 +8,7 @@ type Variable struct {
 
 type Environment struct {
 	Parent *Environment
-	Vars map[string]*Variable
+	Vars   map[string]*Variable
 }
 
 func (env *Environment) Ensure(name string) *Variable {
@@ -53,7 +53,7 @@ func (env *Environment) Evaluate(expr Value) Value {
 		}
 		fun := env.Evaluate(pair.Car).(FunctionValue)
 		args := []Value{}
-		for _, rawArg := range(rawArgs) {
+		for _, rawArg := range rawArgs {
 			args = append(args, env.Evaluate(rawArg))
 		}
 		return fun.Apply(args)
@@ -67,7 +67,7 @@ func makeEnv(parent *Environment) *Environment {
 
 func MakeTopLevelEnv() *Environment {
 	env := makeEnv(nil)
-	for name, value := range(builtinMap) {
+	for name, value := range builtinMap {
 		env.Ensure(name).Value = value
 	}
 	return env
