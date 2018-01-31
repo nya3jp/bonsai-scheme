@@ -1,6 +1,10 @@
 use std::fmt;
 use std::rc::Rc;
 
+pub trait Function {
+    fn apply(&self, args: Vec<Rc<Value>>) -> Result<Rc<Value>, String>;
+}
+
 pub enum Value {
     Undef,
     Boolean(bool),
@@ -8,6 +12,7 @@ pub enum Value {
     Symbol(String),
     Null,
     Pair(Rc<Value>, Rc<Value>),
+    Function(String, Box<Function>),
 }
 
 impl Value {
@@ -17,6 +22,22 @@ impl Value {
             list_value = Rc::new(Value::Pair(value, list_value));
         }
         list_value
+    }
+
+    pub fn to_native_list(&self) -> Result<Vec<Rc<Value>>, String> {
+        let mut values = vec![];
+        let mut current: &Value = self;
+        loop {
+            match current {
+                &Value::Null => break,
+                &Value::Pair(ref car, ref cdr) => {
+                    values.push(car.clone());
+                    current = &**cdr;
+                },
+                _ => return Err("Not a list".to_string()),
+            };
+        }
+        Ok(values)
     }
 }
 
@@ -29,7 +50,8 @@ impl fmt::Display for Value {
             &Value::Integer(i) => write!(f, "{}", i),
             &Value::Symbol(ref name) => write!(f, "{}", name),
             &Value::Null => write!(f, "()"),
-            &Value::Pair(ref car, ref cdr) => write!(f, "({} . {})", &*car, &*cdr),
+            &Value::Pair(ref car, ref cdr) => write!(f, "({} . {})", car, cdr),
+            &Value::Function(ref name, _) => write!(f, "{}", name),
         }
     }
 }
