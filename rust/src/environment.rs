@@ -4,6 +4,7 @@ use std::rc::Rc;
 
 use builtins;
 use data::Value;
+use forms;
 
 pub struct Variable {
     pub value: Rc<Value>,
@@ -61,6 +62,11 @@ impl Env {
                 self.lookup(name).map(|var| var.borrow().value.clone())
                     .ok_or(format!("Not found: {}", name)),
             &Value::Pair(ref car, ref cdr) => {
+                if let &Value::Symbol(ref name) = &**car {
+                    if let Some(form) = forms::lookup(name) {
+                        return form.apply(self, cdr.to_native_list()?.into_iter().collect());
+                    }
+                }
                 let func = self.evaluate(car.clone())?;
                 let mut args = vec![];
                 for expr in cdr.to_native_list()?.into_iter() {

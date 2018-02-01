@@ -10,6 +10,7 @@ use std::io::prelude::*;
 mod builtins;
 mod data;
 mod environment;
+mod forms;
 mod parser;
 
 fn main() {
