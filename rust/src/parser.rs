@@ -4,7 +4,8 @@ use data::Value;
 use regex::Regex;
 
 fn make_quote(value: Rc<Value>) -> Rc<Value> {
-    Rc::new(Value::Pair(Rc::new(Value::Symbol("quote".to_string())), value))
+    Value::from_native_list(
+        vec![Rc::new(Value::Symbol("quote".to_string())), value])
 }
 
 fn parse_skip(code: &str) -> &str {
