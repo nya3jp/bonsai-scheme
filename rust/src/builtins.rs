@@ -6,11 +6,35 @@ use environment::Env;
 
 fn builtin_print(args: Vec<Rc<Value>>) -> Result<Rc<Value>, String> {
     if args.len() != 1 {
-        Err("print: Invalid number of arguments".to_string())
-    } else {
-        println!("{}", args[0]);
-        Ok(Rc::new(Value::Undef))
+        return Err("print: Invalid number of arguments".to_string());
     }
+    println!("{}", args[0]);
+    Ok(Rc::new(Value::Undef))
+}
+
+fn builtin_and(mut args: Vec<Rc<Value>>) -> Result<Rc<Value>, String> {
+    let mut result = true;
+    for value in args.into_iter() {
+        result = result & if let &Value::Boolean(false) = &*value { false } else { true };
+    }
+    Ok(Rc::new(Value::Boolean(result)))
+}
+
+fn builtin_or(mut args: Vec<Rc<Value>>) -> Result<Rc<Value>, String> {
+    let mut result = false;
+    for value in args.into_iter() {
+        result = result | if let &Value::Boolean(false) = &*value { false } else { true };
+    }
+    Ok(Rc::new(Value::Boolean(result)))
+}
+
+fn builtin_not(mut args: Vec<Rc<Value>>) -> Result<Rc<Value>, String> {
+    if args.len() != 1 {
+        return Err("not: Invalid number of arguments".to_string());
+    }
+    let value = args.pop().unwrap();
+    let bool_value = if let &Value::Boolean(false) = &*value { false } else { true };
+    Ok(Rc::new(Value::Boolean(!bool_value)))
 }
 
 // FIXME: Can we get rid of this struct and use Fn directly?
@@ -33,4 +57,7 @@ fn register(env: &mut Env, name: &str, func: &'static Fn(Vec<Rc<Value>>) -> Resu
 
 pub fn install(env: &mut Env) {
     register(env, "print", &builtin_print);
+    register(env, "and", &builtin_and);
+    register(env, "or", &builtin_or);
+    register(env, "not", &builtin_not);
 }
