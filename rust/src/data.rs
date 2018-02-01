@@ -39,6 +39,59 @@ impl Value {
         }
         Ok(values)
     }
+
+    pub fn bool(&self) -> bool {
+        if let &Value::Boolean(false) = self { false } else { true }
+    }
+
+    pub fn as_integer(&self) -> Result<i32, String> {
+        if let &Value::Integer(i) = self {
+            Ok(i)
+        } else {
+            Err("Not an integer".to_string())
+        }
+    }
+
+    pub fn as_symbol(&self) -> Result<String, String> {
+        if let &Value::Symbol(ref name) = self {
+            Ok(name.clone())
+        } else {
+            Err("Not a symbol".to_string())
+        }
+    }
+
+    pub fn as_pair(&self) -> Result<(Rc<Value>, Rc<Value>), String> {
+        if let &Value::Pair(ref car, ref cdr) = self {
+            Ok((car.clone(), cdr.clone()))
+        } else {
+            Err("Not a pair".to_string())
+        }
+    }
+
+    pub fn as_function(&self) -> Result<(String, &Function), String> {
+        if let &Value::Function(ref name, ref func) = self {
+            Ok((name.clone(), &**func))
+        } else {
+            Err("Not a function".to_string())
+        }
+    }
+}
+
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        // FIXME: Can we write this in more readable way?
+        match self {
+            &Value::Undef => if let &Value::Undef = other { true } else { false },
+            &Value::Boolean(a) => if let &Value::Boolean(b) = other { a == b } else { false },
+            &Value::Integer(a) => if let &Value::Integer(b) = other { a == b } else { false },
+            &Value::Symbol(ref a) => if let &Value::Symbol(ref b) = other { a == b } else { false },
+            // FIXME: This is wrong.
+            &Value::Pair(_, _) => false,
+            &Value::Null => if let &Value::Null = other { true } else { false },
+            // FIXME: This is wrong.
+            &Value::Function(_, _) => false,
+        }
+    }
 }
 
 impl fmt::Display for Value {
