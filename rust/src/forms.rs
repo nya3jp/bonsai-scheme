@@ -120,6 +120,40 @@ fn form_lambda(env: &Rc<RefCell<Env>>, exprs: &[Rc<Value>]) -> Result<Rc<Value>,
     make_func_value(env, "<lambda>", params_value, &exprs[1..])
 }
 
+fn form_let(env: &Rc<RefCell<Env>>, exprs: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+    let let_env = Env::new(Some(env.clone()));
+    let bindings_value =
+        exprs.get(0).ok_or("let: Malformed args".to_string())?;
+    for binding_value in bindings_value.to_native_list()?.iter() {
+        let binding = binding_value.to_native_list()?;
+        if binding.len() != 2 {
+            return Err("let: Malformed binding".to_string());
+        }
+        let name = binding[0].as_symbol()?;
+        let value = Env::evaluate(env, &binding[1])?;
+        let var = Env::ensure(&let_env, &name);
+        var.borrow_mut().value = value;
+    }
+    evaluate_body(&let_env, &exprs[1..])
+}
+
+fn form_let_star(env: &Rc<RefCell<Env>>, exprs: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+    let let_env = Env::new(Some(env.clone()));
+    let bindings_value =
+        exprs.get(0).ok_or("let: Malformed args".to_string())?;
+    for binding_value in bindings_value.to_native_list()?.iter() {
+        let binding = binding_value.to_native_list()?;
+        if binding.len() != 2 {
+            return Err("let: Malformed binding".to_string());
+        }
+        let name = binding[0].as_symbol()?;
+        let value = Env::evaluate(&let_env, &binding[1])?;
+        let var = Env::ensure(&let_env, &name);
+        var.borrow_mut().value = value;
+    }
+    evaluate_body(&let_env, &exprs[1..])
+}
+
 // FIXME: Can we get rid of this struct and use Fn directly?
 pub struct Form {
     func: &'static Fn(&Rc<RefCell<Env>>, &[Rc<Value>]) -> Result<Rc<Value>, String>,
@@ -139,6 +173,8 @@ pub fn lookup(name: &str) -> Option<Form> {
         "cond" => Some(Form{func: &form_cond}),
         "define" => Some(Form{func: &form_define}),
         "lambda" => Some(Form{func: &form_lambda}),
+        "let" => Some(Form{func: &form_let}),
+        "let*" => Some(Form{func: &form_let_star}),
         _ => None,
     }
 }
