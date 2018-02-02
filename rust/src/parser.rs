@@ -5,7 +5,7 @@ use regex::Regex;
 
 fn make_quote(value: Rc<Value>) -> Rc<Value> {
     Value::from_native_list(
-        vec![Rc::new(Value::Symbol("quote".to_string())), value])
+        &[Rc::new(Value::Symbol("quote".to_string())), value])
 }
 
 fn parse_skip(code: &str) -> &str {
@@ -36,7 +36,7 @@ fn parse_value(code: &str) -> Result<(Rc<Value>, &str), String> {
         if !next_code.starts_with(")") {
             return Err("Parse error".to_string());
         }
-        return Ok((Value::from_native_list(values), &next_code[1..]));
+        return Ok((Value::from_native_list(values.as_slice()), &next_code[1..]));
     }
 
     let m = TOKEN_RE.find(code).ok_or("Malformed token".to_string())?;

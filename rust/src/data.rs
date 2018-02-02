@@ -2,7 +2,7 @@ use std::fmt;
 use std::rc::Rc;
 
 pub trait Function {
-    fn apply(&self, args: Vec<Rc<Value>>) -> Result<Rc<Value>, String>;
+    fn apply(&self, args: &[Rc<Value>]) -> Result<Rc<Value>, String>;
 }
 
 pub enum Value {
@@ -16,10 +16,10 @@ pub enum Value {
 }
 
 impl Value {
-    pub fn from_native_list(values: Vec<Rc<Value>>) -> Rc<Value> {
+    pub fn from_native_list(values: &[Rc<Value>]) -> Rc<Value> {
         let mut list_value = Rc::new(Value::Null);
-        for value in values.into_iter().rev() {
-            list_value = Rc::new(Value::Pair(value, list_value));
+        for value in values.iter().rev() {
+            list_value = Rc::new(Value::Pair(value.clone(), list_value));
         }
         list_value
     }

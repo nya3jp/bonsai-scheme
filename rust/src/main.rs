@@ -33,7 +33,7 @@ fn main() {
 
     let exprs = parser::parse(&code).expect("Parse error");
     let env = Env::new_top_level();
-    for expr in exprs {
+    for expr in exprs.iter() {
         if let Err(ref msg) = Env::evaluate(&env, expr) {
             println!("ERROR: {}", msg);
             break;
