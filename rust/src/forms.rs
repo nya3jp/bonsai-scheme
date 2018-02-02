@@ -115,6 +115,11 @@ fn form_define(env: &Rc<RefCell<Env>>, exprs: Vec<Rc<Value>>) -> Result<Rc<Value
     Ok(Rc::new(Value::Undef))
 }
 
+fn form_lambda(env: &Rc<RefCell<Env>>, exprs: Vec<Rc<Value>>) -> Result<Rc<Value>, String> {
+    let params_value = exprs.get(0).ok_or("lambda: Malformed args".to_string())?;
+    make_func_value(env, &"<lambda>".to_string(), params_value.clone(), exprs[1..].to_vec())
+}
+
 // FIXME: Can we get rid of this struct and use Fn directly?
 pub struct Form {
     func: &'static Fn(&Rc<RefCell<Env>>, Vec<Rc<Value>>) -> Result<Rc<Value>, String>,
@@ -133,6 +138,7 @@ pub fn lookup(name: &String) -> Option<Form> {
         "if" => Some(Form{func: &form_if}),
         "cond" => Some(Form{func: &form_cond}),
         "define" => Some(Form{func: &form_define}),
+        "lambda" => Some(Form{func: &form_lambda}),
         _ => None,
     }
 }

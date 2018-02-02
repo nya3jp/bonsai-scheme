@@ -68,16 +68,13 @@ impl Env {
                         return form.apply(env, cdr.to_native_list()?.into_iter().collect());
                     }
                 }
-                let func = Env::evaluate(env, car.clone())?;
+                let value = Env::evaluate(env, car.clone())?;
+                let (_, func) = value.as_function()?;
                 let mut args = vec![];
                 for expr in cdr.to_native_list()?.into_iter() {
                     args.push(Env::evaluate(env, expr)?);
                 }
-                if let &Value::Function(_, ref func) = &*func {
-                    func.apply(args)
-                } else {
-                    Err("Not a function".to_string())
-                }
+                func.apply(args)
             },
             _ => Err("Evaluate failed".to_string()),
         }
