@@ -154,6 +154,18 @@ fn form_let_star(env: &Rc<RefCell<Env>>, exprs: &[Rc<Value>]) -> Result<Rc<Value
     evaluate_body(&let_env, &exprs[1..])
 }
 
+fn form_set(env: &Rc<RefCell<Env>>, exprs: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+    if exprs.len() != 2 {
+        return Err("set!: Invalid number of args".to_string());
+    }
+    let name = exprs[0].as_symbol()?;
+    let value = Env::evaluate(env, &exprs[1])?;
+    let var =
+        Env::lookup(env, &name).ok_or("set!: Name not found".to_string())?;
+    var.borrow_mut().value = value;
+    Ok(Rc::new(Value::Undef))
+}
+
 // FIXME: Can we get rid of this struct and use Fn directly?
 pub struct Form {
     func: &'static Fn(&Rc<RefCell<Env>>, &[Rc<Value>]) -> Result<Rc<Value>, String>,
@@ -175,6 +187,7 @@ pub fn lookup(name: &str) -> Option<Form> {
         "lambda" => Some(Form{func: &form_lambda}),
         "let" => Some(Form{func: &form_let}),
         "let*" => Some(Form{func: &form_let_star}),
+        "set!" => Some(Form{func: &form_set}),
         _ => None,
     }
 }
