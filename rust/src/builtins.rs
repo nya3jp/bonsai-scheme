@@ -13,7 +13,7 @@ fn builtin_print(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Undef))
 }
 
-fn builtin_and(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_and(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     let mut result = true;
     for value in args.iter() {
         result = result & value.bool();
@@ -21,7 +21,7 @@ fn builtin_and(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Boolean(result)))
 }
 
-fn builtin_or(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_or(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     let mut result = false;
     for value in args.iter() {
         result = result | value.bool();
@@ -29,7 +29,7 @@ fn builtin_or(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Boolean(result)))
 }
 
-fn builtin_not(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_not(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 1 {
         return Err("not: Invalid number of arguments".to_string());
     }
@@ -37,7 +37,7 @@ fn builtin_not(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Boolean(!value.bool())))
 }
 
-fn builtin_cons(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_cons(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 2 {
         return Err("cons: Invalid number of arguments".to_string());
     }
@@ -45,7 +45,7 @@ fn builtin_cons(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Pair(car.clone(), cdr.clone())))
 }
 
-fn builtin_car(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_car(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 1 {
         return Err("car: Invalid number of arguments".to_string());
     }
@@ -56,7 +56,7 @@ fn builtin_car(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Err("car: Not a pair".to_string())
 }
 
-fn builtin_cdr(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_cdr(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 1 {
         return Err("cdr: Invalid number of arguments".to_string());
     }
@@ -67,7 +67,7 @@ fn builtin_cdr(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Err("cdr: Not a pair".to_string())
 }
 
-fn builtin_eq(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_eq(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 2 {
         return Err("=: Invalid number of arguments".to_string());
     }
@@ -75,7 +75,7 @@ fn builtin_eq(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Boolean(a == b)))
 }
 
-fn builtin_lt(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_lt(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 2 {
         return Err("<: Invalid number of arguments".to_string());
     }
@@ -83,7 +83,7 @@ fn builtin_lt(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Boolean(a < b)))
 }
 
-fn builtin_lte(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_lte(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 2 {
         return Err("<=: Invalid number of arguments".to_string());
     }
@@ -91,7 +91,7 @@ fn builtin_lte(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Boolean(a <= b)))
 }
 
-fn builtin_gt(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_gt(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 2 {
         return Err(">: Invalid number of arguments".to_string());
     }
@@ -99,7 +99,7 @@ fn builtin_gt(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Boolean(a > b)))
 }
 
-fn builtin_gte(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_gte(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 2 {
         return Err(">=: Invalid number of arguments".to_string());
     }
@@ -139,7 +139,7 @@ fn builtin_div(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     Ok(Rc::new(Value::Integer(result)))
 }
 
-fn builtin_eq_check(mut args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn builtin_eq_check(args: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if args.len() != 2 {
         return Err(">: Invalid number of arguments".to_string());
     }

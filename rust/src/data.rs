@@ -111,7 +111,6 @@ impl fmt::Display for Value {
 
 impl fmt::Debug for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        (self as &fmt::Display).fmt(f);
-        Ok(())
+        (self as &fmt::Display).fmt(f)
     }
 }

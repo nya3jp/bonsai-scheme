@@ -23,7 +23,7 @@ pub struct Env {
 
 impl Env {
     pub fn new_top_level() -> Rc<RefCell<Env>> {
-        let mut env = Env::new(None);
+        let env = Env::new(None);
         builtins::install(&env);
         env
     }

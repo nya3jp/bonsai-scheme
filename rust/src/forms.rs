@@ -13,7 +13,7 @@ fn evaluate_body(env: &Rc<RefCell<Env>>, body: &[Rc<Value>]) -> Result<Rc<Value>
     Ok(value)
 }
 
-fn form_quote(env: &Rc<RefCell<Env>>, exprs: &[Rc<Value>]) -> Result<Rc<Value>, String> {
+fn form_quote(_: &Rc<RefCell<Env>>, exprs: &[Rc<Value>]) -> Result<Rc<Value>, String> {
     if exprs.len() != 1 {
         return Err("args".to_string());
     }
