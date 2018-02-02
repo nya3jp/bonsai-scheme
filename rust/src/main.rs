@@ -7,6 +7,8 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
+use environment::Env;
+
 mod builtins;
 mod data;
 mod environment;
@@ -30,9 +32,9 @@ fn main() {
     let code = code;
 
     let exprs = parser::parse(&code).expect("Parse error");
-    let env = environment::Env::new_top_level();
+    let env = Env::new_top_level();
     for expr in exprs {
-        if let Err(ref msg) = env.evaluate(expr) {
+        if let Err(ref msg) = Env::evaluate(&env, expr) {
             println!("ERROR: {}", msg);
             break;
         }

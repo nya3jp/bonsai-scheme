@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use data::Function;
@@ -166,13 +167,13 @@ impl Function for BuiltinFunction {
     }
 }
 
-fn register(env: &mut Env, name: &str, func: &'static Fn(Vec<Rc<Value>>) -> Result<Rc<Value>, String>) {
+fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static Fn(Vec<Rc<Value>>) -> Result<Rc<Value>, String>) {
     let name_string = name.to_string();
-    let var = env.ensure(&name_string);
+    let var = Env::ensure(env, &name_string);
     var.borrow_mut().value = Rc::new(Value::Function(name_string, Box::new(BuiltinFunction{func: func})));
 }
 
-pub fn install(env: &mut Env) {
+pub fn install(env: &Rc<RefCell<Env>>) {
     register(env, "print", &builtin_print);
     register(env, "and", &builtin_and);
     register(env, "or", &builtin_or);

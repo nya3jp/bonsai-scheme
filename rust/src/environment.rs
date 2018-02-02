@@ -22,34 +22,35 @@ pub struct Env {
 }
 
 impl Env {
-    pub fn new_top_level() -> Env {
+    pub fn new_top_level() -> Rc<RefCell<Env>> {
         let mut env = Env::new(None);
-        builtins::install(&mut env);
+        builtins::install(&env);
         env
     }
 
-    pub fn new(parent: Option<Rc<RefCell<Env>>>) -> Env {
-        Env{parent: parent, vars: HashMap::new()}
+    pub fn new(parent: Option<Rc<RefCell<Env>>>) -> Rc<RefCell<Env>> {
+        Rc::new(RefCell::new(Env{parent: parent, vars: HashMap::new()}))
     }
 
-    pub fn ensure(&mut self, name: &String) -> Rc<RefCell<Variable>> {
-        if !self.vars.contains_key(name) {
-            self.vars.insert(name.clone(), Rc::new(RefCell::new(Variable::new())));
+    pub fn ensure(env: &Rc<RefCell<Env>>, name: &String) -> Rc<RefCell<Variable>> {
+        let mut env_ref = env.borrow_mut();
+        if !env_ref.vars.contains_key(name) {
+            env_ref.vars.insert(name.clone(), Rc::new(RefCell::new(Variable::new())));
         }
-        self.vars.get(name).unwrap().clone()
+        env_ref.vars.get(name).unwrap().clone()
     }
 
-    pub fn lookup(&self, name: &String) -> Option<Rc<RefCell<Variable>>> {
-        if self.vars.contains_key(name) {
-            Some(self.vars.get(name).unwrap().clone())
-        } else if let Some(ref parent) = self.parent {
-            parent.borrow().lookup(name)
+    pub fn lookup(env: &Rc<RefCell<Env>>, name: &String) -> Option<Rc<RefCell<Variable>>> {
+        if env.borrow().vars.contains_key(name) {
+            Some(env.borrow().vars.get(name).unwrap().clone())
+        } else if let Some(ref parent) = env.borrow().parent {
+            Env::lookup(parent, name)
         } else {
             None
         }
     }
 
-    pub fn evaluate(&self, expr: Rc<Value>) -> Result<Rc<Value>, String> {
+    pub fn evaluate(env: &Rc<RefCell<Env>>, expr: Rc<Value>) -> Result<Rc<Value>, String> {
         match &*expr {
             // FIXME: Can we avoid Rc::clone() here? I got the following error:
             // error[E0505]: cannot move out of `expr` because it is borrowed
@@ -59,18 +60,18 @@ impl Env {
             &Value::Boolean(_) => Ok(Rc::clone(&expr)),
             &Value::Integer(_) => Ok(Rc::clone(&expr)),
             &Value::Symbol(ref name) =>
-                self.lookup(name).map(|var| var.borrow().value.clone())
+                Env::lookup(env, name).map(|var| var.borrow().value.clone())
                     .ok_or(format!("Not found: {}", name)),
             &Value::Pair(ref car, ref cdr) => {
                 if let &Value::Symbol(ref name) = &**car {
                     if let Some(form) = forms::lookup(name) {
-                        return form.apply(self, cdr.to_native_list()?.into_iter().collect());
+                        return form.apply(env, cdr.to_native_list()?.into_iter().collect());
                     }
                 }
-                let func = self.evaluate(car.clone())?;
+                let func = Env::evaluate(env, car.clone())?;
                 let mut args = vec![];
                 for expr in cdr.to_native_list()?.into_iter() {
-                    args.push(self.evaluate(expr)?);
+                    args.push(Env::evaluate(env, expr)?);
                 }
                 if let &Value::Function(_, ref func) = &*func {
                     func.apply(args)
