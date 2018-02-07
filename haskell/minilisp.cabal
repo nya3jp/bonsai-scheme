@@ -1,0 +1,26 @@
+name:                minilisp
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/nya3jp/minilisp
+-- license:             BSD3
+-- license-file:        LICENSE
+author:              Shuhei Takahashi
+-- maintainer:          example@example.com
+copyright:           2018 Shuhei Takahashi
+category:            Web
+build-type:          Simple
+-- extra-source-files:  README.md
+cabal-version:       >=1.10
+
+executable minilisp
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , regex-compat
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/nya3jp/minilisp
