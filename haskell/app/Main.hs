@@ -3,14 +3,20 @@
 module Main where
 
 import Control.Monad
+import MiniLisp.Environment
 import MiniLisp.Parser
 import System.Environment
 
-main :: IO ()
-main = do
+readCode :: IO String
+readCode = do
   args <- getArgs
   guard $ length args == 1
   let filename = head args
-  code <- readFile filename
+  readFile filename
+
+main :: IO ()
+main = do
+  code <- readCode
   let exprs = parse code
-  print exprs
+  env <- newEnv
+  mapM_ (evaluate env) exprs
