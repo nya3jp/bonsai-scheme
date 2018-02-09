@@ -4,21 +4,20 @@ module MiniLisp.Environment(
 ) where
 
 import Data.IORef
-import Data.Map.Lazy
+import qualified Data.Map.Lazy as M
 import MiniLisp.Builtins
 import MiniLisp.Data
-import Prelude hiding (lookup)
 
 newEnv :: IO Env
 newEnv = do
-  vars <- newIORef empty
+  vars <- newIORef M.empty
   installBuiltins vars
   return Env { parent = Nothing, vars = vars }
 
 lookupEnv :: Env -> String -> IO (Maybe Var)
 lookupEnv env name = do
   m <- readIORef $ vars env
-  case lookup name m of
+  case M.lookup name m of
     Just var -> return $ Just var
     Nothing -> case parent env of
       Just p -> lookupEnv p name

@@ -16,7 +16,11 @@ cabal-version:       >=1.10
 executable minilisp
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  other-modules:       MiniLisp.Builtins
+                     , MiniLisp.Data
+                     , MiniLisp.Environment
+                     , MiniLisp.Parser
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:       base
                      , containers
                      , regex-compat

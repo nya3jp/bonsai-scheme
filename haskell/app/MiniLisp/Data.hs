@@ -9,7 +9,7 @@ module MiniLisp.Data(
 ) where
 
 import Data.IORef
-import Data.Map.Lazy
+import qualified Data.Map.Lazy as M
 
 data Value =
   Undef |
@@ -40,7 +40,7 @@ valueToList (Pair car cdr) = car : valueToList cdr
 valueToList _ = error "not a list"
 
 type Var = IORef Value
-type VarMap = Map String Var
+type VarMap = M.Map String Var
 
 data Env = Env {
   parent :: Maybe Env,

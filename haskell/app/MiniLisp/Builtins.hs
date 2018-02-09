@@ -2,7 +2,7 @@ module MiniLisp.Builtins where
 
 import Control.Monad
 import Data.IORef
-import Data.Map.Lazy
+import qualified Data.Map.Lazy as M
 import MiniLisp.Data
 
 builtinPrint :: [Value] -> IO Value
@@ -18,5 +18,5 @@ installBuiltins vars = do
     install name func = do
       m <- readIORef vars
       var <- newIORef $ Function name func
-      let m' = insert name var m
+      let m' = M.insert name var m
       writeIORef vars m'
