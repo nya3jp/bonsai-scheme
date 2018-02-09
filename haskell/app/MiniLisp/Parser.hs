@@ -2,7 +2,6 @@ module MiniLisp.Parser( parse ) where
 
 import Data.List
 import Data.Maybe
-import Debug.Trace
 import MiniLisp.Data
 import Text.Regex
 

@@ -12,14 +12,14 @@ newEnv :: IO Env
 newEnv = do
   vars <- newIORef M.empty
   installBuiltins vars
-  return Env { parent = Nothing, vars = vars }
+  return $ Env Nothing vars
 
 lookupEnv :: Env -> String -> IO (Maybe Var)
-lookupEnv env name = do
-  m <- readIORef $ vars env
+lookupEnv (Env parent vars) name = do
+  m <- readIORef vars
   case M.lookup name m of
     Just var -> return $ Just var
-    Nothing -> case parent env of
+    Nothing -> case parent of
       Just p -> lookupEnv p name
       Nothing -> return Nothing
 

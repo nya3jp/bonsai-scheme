@@ -5,7 +5,7 @@ module MiniLisp.Data(
   valueToList,
   Var,
   VarMap,
-  Env(Env, parent, vars),
+  Env(Env),
 ) where
 
 import Data.IORef
@@ -17,7 +17,7 @@ data Value =
   Integer Int |
   Symbol String |
   Null |
-  Pair { car :: Value, cdr :: Value } |
+  Pair Value Value |
   Function String ([Value] -> IO Value)
 
 valueToString :: Value -> String
@@ -31,8 +31,7 @@ valueToString (Pair car cdr) = "(" ++ valueToString car ++ " . " ++ valueToStrin
 valueToString (Function name _) = name
 
 valueFromList :: [Value] -> Value
-valueFromList [] = Null
-valueFromList (value:rest) = Pair { car = value, cdr = valueFromList rest }
+valueFromList = foldr Pair Null
 
 valueToList :: Value -> [Value]
 valueToList Null = []
@@ -42,7 +41,4 @@ valueToList _ = error "not a list"
 type Var = IORef Value
 type VarMap = M.Map String Var
 
-data Env = Env {
-  parent :: Maybe Env,
-  vars :: IORef VarMap
-}
+data Env = Env (Maybe Env) (IORef VarMap)
