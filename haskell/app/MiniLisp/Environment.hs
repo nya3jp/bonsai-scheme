@@ -7,6 +7,7 @@ import Data.IORef
 import qualified Data.Map.Lazy as M
 import MiniLisp.Builtins
 import MiniLisp.Data
+import {-# SOURCE #-} MiniLisp.Forms
 
 newEnv :: IO Env
 newEnv = do
@@ -34,10 +35,16 @@ evaluate env expr =
       case result of
         Just var -> readIORef var
         Nothing -> error "name not found"
-    Pair car cdr -> do
-      value <- evaluate env car
-      args <- mapM (evaluate env) (valueToList cdr)
-      case value of
-        Function _ f -> f args
-        _ -> error "not a function"
+    Pair car cdr ->
+      case lookupFormByValue car of
+        Just form -> form env (valueToList cdr)
+        Nothing -> do
+          value <- evaluate env car
+          args <- mapM (evaluate env) (valueToList cdr)
+          case value of
+            Function _ f -> f args
+            _ -> error "not a function"
+      where
+        lookupFormByValue (Symbol name) = lookupForm name
+        lookupFormByValue _ = Nothing
     _ -> error "failed to evaluate"
