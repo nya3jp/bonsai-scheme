@@ -14,6 +14,7 @@ thus they aggressively omit error handling.
 LISP language implemented here is a subset of Scheme. It differs from Scheme
 in many aspects, but notable differences are:
 
+- No garbage collection (unless it is easy to support).
 - No macro.
 - No variable-length arguments.
 - Very limited special forms and builtin functions.
