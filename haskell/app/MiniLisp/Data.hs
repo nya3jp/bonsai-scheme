@@ -3,6 +3,7 @@ module MiniLisp.Data(
   valueToString,
   valueFromList,
   valueToList,
+  valueToBool,
   Var,
   VarMap,
   Env(Env),
@@ -37,6 +38,10 @@ valueToList :: Value -> [Value]
 valueToList Null = []
 valueToList (Pair car cdr) = car : valueToList cdr
 valueToList _ = error "not a list"
+
+valueToBool :: Value -> Bool
+valueToBool (Boolean False) = False
+valueToBool _ = True
 
 type Var = IORef Value
 type VarMap = M.Map String Var
