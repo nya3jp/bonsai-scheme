@@ -18,6 +18,20 @@ setVariable vars name value = do
   let m' = M.insert name var m
   writeIORef vars m'
 
+makeFunction :: Env -> String -> [Value] -> [Value] -> Value
+makeFunction env name params body =
+  Function name func
+  where
+    func args = do
+      funcEnv <- newEnv $ Just env
+      initFuncEnv funcEnv
+      evaluateBody funcEnv body
+      where
+        initFuncEnv (Env _ vars) = mapM_ handleParam $ zip params args
+          where
+            handleParam (Symbol name', value) = setVariable vars name' value
+            handleParam _ = error "invalid function call"
+
 formBegin :: Env -> [Value] -> IO Value
 formBegin = evaluateBody
 
@@ -57,6 +71,25 @@ formLetStar env (bindings:body) = do
             _ -> error "let*"
 formLetStar _ [] = error "let*"
 
+formDefine :: Env -> [Value] -> IO Value
+formDefine env@(Env _ vars) [Symbol name, expr] = do
+  value <- evaluate env expr
+  setVariable vars name value
+  return Undef
+formDefine env@(Env _ vars) (decl:body) =
+  case valueToList decl of
+    (Symbol name : params) -> do
+      let value = makeFunction env name params body
+      setVariable vars name value
+      return Undef
+    _ -> error "define"
+formDefine _ _ = error "define"
+
+formLambda :: Env -> [Value] -> IO Value
+formLambda env (decl:body) =
+  return $ makeFunction env "<lambda>" (valueToList decl) body
+formLambda _ _ = error "lambda"
+
 formIf :: Env -> [Value] -> IO Value
 formIf env [testExpr, thenExpr] = do
   testValue <- evaluate env testExpr
@@ -83,6 +116,8 @@ lookupForm "begin" = Just formBegin
 lookupForm "quote" = Just formQuote
 lookupForm "let" = Just formLet
 lookupForm "let*" = Just formLetStar
+lookupForm "define" = Just formDefine
+lookupForm "lambda" = Just formLambda
 lookupForm "if" = Just formIf
 lookupForm "cond" = Just formCond
 lookupForm _ = Nothing
