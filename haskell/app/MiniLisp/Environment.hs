@@ -1,4 +1,7 @@
 module MiniLisp.Environment(
+  Var,
+  Env(Env),
+  newEnv,
   newTopLevelEnv,
   ensure,
   lookup,
@@ -9,13 +12,23 @@ import Data.IORef
 import qualified Data.Map.Lazy as M
 import MiniLisp.Builtins
 import MiniLisp.Data
-import {-# SOURCE #-} MiniLisp.Forms
+import MiniLisp.Forms
 import Prelude hiding (lookup)
+
+type Var = IORef Value
+type VarMap = M.Map String Var
+
+data Env = Env (Maybe Env) (IORef VarMap)
+
+newEnv :: Maybe Env -> IO Env
+newEnv parent = do
+  vars <- newIORef M.empty
+  return $ Env parent vars
 
 newTopLevelEnv :: IO Env
 newTopLevelEnv = do
   env <- newEnv Nothing
-  case env of Env _ vars -> installBuiltins vars
+  installBuiltins env
   return env
 
 ensure :: Env -> String -> IO Var

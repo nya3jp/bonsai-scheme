@@ -1,8 +1,10 @@
-module MiniLisp.Builtins where
+module MiniLisp.Builtins(
+  installBuiltins,
+) where
 
 import Data.IORef
-import qualified Data.Map.Lazy as M
 import MiniLisp.Data
+import {-# SOURCE #-} MiniLisp.Environment as E
 
 valueToInt :: Value -> Int
 valueToInt (Integer a) = a
@@ -78,8 +80,8 @@ builtinCdr :: [Value] -> Value
 builtinCdr [Pair _ cdr] = cdr
 builtinCdr _ = error "cdr"
 
-installBuiltins :: IORef VarMap -> IO ()
-installBuiltins vars = do
+installBuiltins :: E.Env -> IO ()
+installBuiltins env = do
   installIO "print" builtinPrint
   installPure "and" builtinAnd
   installPure "or" builtinOr
@@ -99,8 +101,6 @@ installBuiltins vars = do
   installPure "cdr" builtinCdr
   where
     installIO name func = do
-      m <- readIORef vars
-      var <- newIORef $ Function name func
-      let m' = M.insert name var m
-      writeIORef vars m'
+      var <- E.ensure env name
+      writeIORef var $ Function name func
     installPure name func = installIO name $ return . func

@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad
-import MiniLisp.Environment
+import MiniLisp.Environment as E
 import MiniLisp.Parser
 import System.Environment
 
@@ -16,5 +16,5 @@ main :: IO ()
 main = do
   code <- readCode
   let exprs = parse code
-  env <- newTopLevelEnv
-  mapM_ (evaluate env) exprs
+  env <- E.newTopLevelEnv
+  mapM_ (E.evaluate env) exprs

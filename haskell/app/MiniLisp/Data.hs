@@ -4,14 +4,7 @@ module MiniLisp.Data(
   valueFromList,
   valueToList,
   valueToBool,
-  Var,
-  VarMap,
-  Env(Env),
-  newEnv,
 ) where
-
-import Data.IORef
-import qualified Data.Map.Lazy as M
 
 data Value =
   Undef |
@@ -43,13 +36,3 @@ valueToList _ = error "not a list"
 valueToBool :: Value -> Bool
 valueToBool (Boolean False) = False
 valueToBool _ = True
-
-type Var = IORef Value
-type VarMap = M.Map String Var
-
-data Env = Env (Maybe Env) (IORef VarMap)
-
-newEnv :: Maybe Env -> IO Env
-newEnv parent = do
-  vars <- newIORef M.empty
-  return $ Env parent vars
