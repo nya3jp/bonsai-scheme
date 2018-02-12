@@ -1,6 +1,6 @@
 module MiniLisp.Environment(
   Var,
-  Env(Env),
+  Env,
   newEnv,
   newTopLevelEnv,
   ensure,
