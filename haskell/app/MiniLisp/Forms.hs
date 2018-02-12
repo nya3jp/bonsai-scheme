@@ -6,17 +6,10 @@ import Control.Monad
 import Data.IORef
 import qualified Data.Map.Lazy as M
 import MiniLisp.Data
-import MiniLisp.Environment
+import MiniLisp.Environment as E
 
 evaluateBody :: Env -> [Value] -> IO Value
 evaluateBody env = foldM (\_ -> evaluate env) Undef
-
-setVariable :: IORef VarMap -> String -> Value -> IO ()
-setVariable vars name value = do
-  m <- readIORef vars
-  var <- newIORef value
-  let m' = M.insert name var m
-  writeIORef vars m'
 
 makeFunction :: Env -> String -> [Value] -> [Value] -> Value
 makeFunction env name params body =
@@ -27,9 +20,11 @@ makeFunction env name params body =
       initFuncEnv funcEnv
       evaluateBody funcEnv body
       where
-        initFuncEnv (Env _ vars) = mapM_ handleParam $ zip params args
+        initFuncEnv funcEnv = mapM_ handleParam $ zip params args
           where
-            handleParam (Symbol name', value) = setVariable vars name' value
+            handleParam (Symbol name', value) = do
+              var <- E.ensure funcEnv name'
+              writeIORef var value
             handleParam _ = error "invalid function call"
 
 formBegin :: Env -> [Value] -> IO Value
@@ -45,13 +40,14 @@ formLet env (bindings:body) = do
   initLetEnv letEnv
   evaluateBody letEnv body
   where
-    initLetEnv (Env _ vars) = mapM_ handleBinding $ valueToList bindings
+    initLetEnv letEnv = mapM_ handleBinding $ valueToList bindings
       where
         handleBinding binding =
           case valueToList binding of
             [Symbol name, expr] -> do
               value <- evaluate env expr
-              setVariable vars name value
+              var <- E.ensure letEnv name
+              writeIORef var value
             _ -> error "let"
 formLet _ [] = error "let"
 
@@ -61,26 +57,29 @@ formLetStar env (bindings:body) = do
   initLetEnv letEnv
   evaluateBody letEnv body
   where
-    initLetEnv letEnv@(Env _ vars) = mapM_ handleBinding $ valueToList bindings
+    initLetEnv letEnv = mapM_ handleBinding $ valueToList bindings
       where
         handleBinding binding =
           case valueToList binding of
             [Symbol name, expr] -> do
               value <- evaluate letEnv expr
-              setVariable vars name value
+              var <- E.ensure letEnv name
+              writeIORef var value
             _ -> error "let*"
 formLetStar _ [] = error "let*"
 
 formDefine :: Env -> [Value] -> IO Value
-formDefine env@(Env _ vars) [Symbol name, expr] = do
+formDefine env [Symbol name, expr] = do
   value <- evaluate env expr
-  setVariable vars name value
+  var <- E.ensure env name
+  writeIORef var value
   return Undef
-formDefine env@(Env _ vars) (decl:body) =
+formDefine env (decl:body) =
   case valueToList decl of
     (Symbol name : params) -> do
       let value = makeFunction env name params body
-      setVariable vars name value
+      var <- E.ensure env name
+      writeIORef var value
       return Undef
     _ -> error "define"
 formDefine _ _ = error "define"
@@ -111,6 +110,17 @@ formCond env (branch:restBranches) =
         else formCond env restBranches
     _ -> error "cond"
 
+formSet :: Env -> [Value] -> IO Value
+formSet env [Symbol name, expr] = do
+  value <- evaluate env expr
+  maybeVar <- E.lookup env name
+  case maybeVar of
+    Just var -> do
+      writeIORef var value
+      return Undef
+    Nothing -> error $ "name not found: " ++ name
+formSet _ _ = error "set!"
+
 lookupForm :: String -> Maybe (Env -> [Value] -> IO Value)
 lookupForm "begin" = Just formBegin
 lookupForm "quote" = Just formQuote
@@ -120,4 +130,5 @@ lookupForm "define" = Just formDefine
 lookupForm "lambda" = Just formLambda
 lookupForm "if" = Just formIf
 lookupForm "cond" = Just formCond
+lookupForm "set!" = Just formSet
 lookupForm _ = Nothing

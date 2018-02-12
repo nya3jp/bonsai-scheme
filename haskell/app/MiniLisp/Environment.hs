@@ -1,5 +1,7 @@
 module MiniLisp.Environment(
   newTopLevelEnv,
+  ensure,
+  lookup,
   evaluate,
 ) where
 
@@ -8,6 +10,7 @@ import qualified Data.Map.Lazy as M
 import MiniLisp.Builtins
 import MiniLisp.Data
 import {-# SOURCE #-} MiniLisp.Forms
+import Prelude hiding (lookup)
 
 newTopLevelEnv :: IO Env
 newTopLevelEnv = do
@@ -15,13 +18,24 @@ newTopLevelEnv = do
   case env of Env _ vars -> installBuiltins vars
   return env
 
-lookupEnv :: Env -> String -> IO (Maybe Var)
-lookupEnv (Env parent vars) name = do
-  m <- readIORef vars
-  case M.lookup name m of
+ensure :: Env -> String -> IO Var
+ensure (Env _ vars) name = do
+  vars' <- readIORef vars
+  case M.lookup name vars' of
+    Just var -> return var
+    Nothing -> do
+      var <- newIORef Undef
+      let map' = M.insert name var vars'
+      writeIORef vars map'
+      return var
+
+lookup :: Env -> String -> IO (Maybe Var)
+lookup (Env parent vars) name = do
+  vars' <- readIORef vars
+  case M.lookup name vars' of
     Just var -> return $ Just var
     Nothing -> case parent of
-      Just p -> lookupEnv p name
+      Just p -> lookup p name
       Nothing -> return Nothing
 
 evaluate :: Env -> Value -> IO Value
@@ -31,7 +45,7 @@ evaluate env expr =
     Boolean _ -> return expr
     Integer _ -> return expr
     Symbol name -> do
-      result <- lookupEnv env name
+      result <- lookup env name
       case result of
         Just var -> readIORef var
         Nothing -> error $ "name not found: " ++ name
