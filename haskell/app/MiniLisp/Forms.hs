@@ -57,9 +57,32 @@ formLetStar env (bindings:body) = do
             _ -> error "let*"
 formLetStar _ [] = error "let*"
 
+formIf :: Env -> [Value] -> IO Value
+formIf env [testExpr, thenExpr] = do
+  testValue <- evaluate env testExpr
+  if valueToBool testValue then evaluate env thenExpr else return Undef
+formIf env [testExpr, thenExpr, elseExpr] = do
+  testValue <- evaluate env testExpr
+  evaluate env $ if valueToBool testValue then thenExpr else elseExpr
+formIf _ _ = error "if"
+
+formCond :: Env -> [Value] -> IO Value
+formCond _ [] = return Undef
+formCond env (branch:restBranches) =
+  case valueToList branch of
+    (Symbol "else" : body) -> evaluateBody env body
+    (testExpr : body) -> do
+      testValue <- evaluate env testExpr
+      if valueToBool testValue
+        then evaluateBody env body
+        else formCond env restBranches
+    _ -> error "cond"
+
 lookupForm :: String -> Maybe (Env -> [Value] -> IO Value)
 lookupForm "begin" = Just formBegin
 lookupForm "quote" = Just formQuote
 lookupForm "let" = Just formLet
 lookupForm "let*" = Just formLetStar
+lookupForm "if" = Just formIf
+lookupForm "cond" = Just formCond
 lookupForm _ = Nothing
