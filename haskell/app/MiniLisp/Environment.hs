@@ -1,5 +1,5 @@
 module MiniLisp.Environment(
-  newEnv,
+  newTopLevelEnv,
   evaluate,
 ) where
 
@@ -9,11 +9,11 @@ import MiniLisp.Builtins
 import MiniLisp.Data
 import {-# SOURCE #-} MiniLisp.Forms
 
-newEnv :: IO Env
-newEnv = do
-  vars <- newIORef M.empty
-  installBuiltins vars
-  return $ Env Nothing vars
+newTopLevelEnv :: IO Env
+newTopLevelEnv = do
+  env <- newEnv Nothing
+  case env of Env _ vars -> installBuiltins vars
+  return env
 
 lookupEnv :: Env -> String -> IO (Maybe Var)
 lookupEnv (Env parent vars) name = do
@@ -34,7 +34,7 @@ evaluate env expr =
       result <- lookupEnv env name
       case result of
         Just var -> readIORef var
-        Nothing -> error "name not found"
+        Nothing -> error $ "name not found: " ++ name
     Pair car cdr ->
       case lookupFormByValue car of
         Just form -> form env (valueToList cdr)

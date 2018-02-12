@@ -7,6 +7,7 @@ module MiniLisp.Data(
   Var,
   VarMap,
   Env(Env),
+  newEnv,
 ) where
 
 import Data.IORef
@@ -47,3 +48,8 @@ type Var = IORef Value
 type VarMap = M.Map String Var
 
 data Env = Env (Maybe Env) (IORef VarMap)
+
+newEnv :: Maybe Env -> IO Env
+newEnv parent = do
+  vars <- newIORef M.empty
+  return $ Env parent vars
