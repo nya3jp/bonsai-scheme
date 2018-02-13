@@ -22,7 +22,7 @@ in many aspects, but notable differences are:
 Supported features:
 
 - Types: integer, boolean, nil, pair, symbol, function
-- Special forms: quote, begin, lambda, define, if, cond, let, let*, set!
+- Special forms: quote, begin, lambda, define, if, cond, let, let*, letrec, set!
 - Builtin functions: print, +, -, *, /, =, <, <=, >, >=, and, or, not, eq?, cons, car, cdr
 
 

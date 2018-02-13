@@ -120,6 +120,21 @@ func formLet(env *Environment, rawArgs []Value) Value {
 }
 
 func formLetStar(env *Environment, rawArgs []Value) Value {
+	letEnv := env
+	for _, bindingValue := range rawArgs[0].(ListValue).ToSlice() {
+		binding := bindingValue.(ListValue).ToSlice()
+		if len(binding) != 2 {
+			panic("args")
+		}
+		name := binding[0].(*Symbol).Name
+		parentEnv := letEnv
+		letEnv = makeEnv(parentEnv)
+		letEnv.Ensure(name).Value = parentEnv.Evaluate(binding[1])
+	}
+	return evaluateBody(letEnv, rawArgs[1:])
+}
+
+func formLetRec(env *Environment, rawArgs []Value) Value {
 	letEnv := makeEnv(env)
 	for _, bindingValue := range rawArgs[0].(ListValue).ToSlice() {
 		binding := bindingValue.(ListValue).ToSlice()
@@ -152,5 +167,6 @@ func init() {
 	formMap["cond"] = formCond
 	formMap["let"] = formLet
 	formMap["let*"] = formLetStar
+	formMap["letrec"] = formLetRec
 	formMap["set!"] = formSet
 }

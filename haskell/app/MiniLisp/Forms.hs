@@ -52,6 +52,23 @@ formLet _ [] = error "let"
 
 formLetStar :: E.Env -> [Value] -> IO Value
 formLetStar env (bindings:body) = do
+  letEnv <- initLetEnv env
+  evaluateBody letEnv body
+  where
+    initLetEnv env' = foldM handleBinding env' $ valueToList bindings
+    handleBinding env' binding = do
+      env'' <- newEnv $ Just env'
+      case valueToList binding of
+        [Symbol name, expr] -> do
+          value <- E.evaluate env' expr
+          var <- E.ensure env'' name
+          writeIORef var value
+        _ -> error "let*"
+      return env''
+formLetStar _ [] = error "let*"
+
+formLetRec :: E.Env -> [Value] -> IO Value
+formLetRec env (bindings:body) = do
   letEnv <- newEnv $ Just env
   initLetEnv letEnv
   evaluateBody letEnv body
@@ -64,8 +81,8 @@ formLetStar env (bindings:body) = do
               value <- E.evaluate letEnv expr
               var <- E.ensure letEnv name
               writeIORef var value
-            _ -> error "let*"
-formLetStar _ [] = error "let*"
+            _ -> error "letrec"
+formLetRec _ [] = error "letrec"
 
 formDefine :: E.Env -> [Value] -> IO Value
 formDefine env [Symbol name, expr] = do
@@ -125,6 +142,7 @@ lookupForm "begin" = Just formBegin
 lookupForm "quote" = Just formQuote
 lookupForm "let" = Just formLet
 lookupForm "let*" = Just formLetStar
+lookupForm "letrec" = Just formLetRec
 lookupForm "define" = Just formDefine
 lookupForm "lambda" = Just formLambda
 lookupForm "if" = Just formIf

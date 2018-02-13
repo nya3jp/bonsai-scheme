@@ -109,6 +109,20 @@ def _form_let(env: 'environments.Environment', args: List[data.Value]) -> data.V
 
 def _form_let_star(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
     assert len(args) >= 1
+    let_env = env
+    for pair_expr in data.to_native_list(args[0]):
+        pair = data.to_native_list(pair_expr)
+        assert len(pair) == 2
+        target, expr = pair
+        assert isinstance(target, data.SymbolValue)
+        parent_env = let_env
+        let_env = environments.Environment(parent=parent_env)
+        let_env.ensure(target.name).value = parent_env.evaluate(expr)
+    return _evaluate_body(let_env, args[1:])
+
+
+def _form_letrec(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+    assert len(args) >= 1
     let_env = environments.Environment(parent=env)
     for pair_expr in data.to_native_list(args[0]):
         pair = data.to_native_list(pair_expr)
@@ -128,5 +142,6 @@ ALL_MAP: Dict[str, Callable[['environments.Environment', List[data.Value]], data
     'cond': _form_cond,
     'let': _form_let,
     'let*': _form_let_star,
+    'letrec': _form_letrec,
     'set!': _form_set,
 }
