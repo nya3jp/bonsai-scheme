@@ -4,4 +4,6 @@ cd "$(dirname "$0")"
 
 set -ex
 
-exec go build ./cmd/minilisp
+export GOPATH=$PWD
+
+exec go get minilisp/cmd/minilisp
