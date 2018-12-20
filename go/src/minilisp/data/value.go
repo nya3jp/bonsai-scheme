@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 )
@@ -35,7 +36,23 @@ func NewPair(car, cdr Value) *Pair {
 }
 
 func (v *Pair) String() string {
-	return fmt.Sprintf("(%v . %v)", v.Car, v.Cdr)
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "(%v", v.Car)
+	cur := v.Cdr
+	for cur != nil {
+		switch v := cur.(type) {
+		case *Null:
+			fmt.Fprintf(&buf, ")")
+			cur = nil
+		case *Pair:
+			fmt.Fprintf(&buf, " %v", v.Car)
+			cur = v.Cdr
+		default:
+			fmt.Fprintf(&buf, " . %v)", v)
+			cur = nil
+		}
+	}
+	return buf.String()
 }
 
 type Bool struct {
