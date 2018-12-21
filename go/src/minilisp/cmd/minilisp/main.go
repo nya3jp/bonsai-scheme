@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,7 +18,7 @@ func batchMain(filename string) error {
 	}
 	code := string(codeBytes)
 
-	exprs, err := parser.Parse(code)
+	exprs, err := parser.ParseList(code)
 	if err != nil {
 		return fmt.Errorf("code failed to parse: %v", err)
 	}
@@ -31,9 +32,34 @@ func batchMain(filename string) error {
 	return nil
 }
 
+func interactiveMain() {
+	env := data.NewTopLevelEnv()
+	sc := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("> ")
+		if !sc.Scan() {
+			break
+		}
+		code := sc.Text()
+		expr, err := parser.ParseValue(code)
+		if err != nil {
+			fmt.Printf("ERROR: failed to parse: %v\n", err)
+			continue
+		}
+		value, err := eval.Evaluate(env, expr)
+		if err != nil {
+			fmt.Printf("ERROR: failed to evaluate: %v\n", err)
+			continue
+		}
+		if value != data.TheUndef {
+			fmt.Println(value)
+		}
+	}
+}
+
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Fprintln(os.Stderr, "REPL not implemented")
+		interactiveMain()
 	} else if len(os.Args) > 2 {
 		fmt.Fprintln(os.Stderr, "usage: minilisp <file>")
 	} else {

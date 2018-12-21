@@ -87,7 +87,18 @@ func parseList(code string) ([]data.Value, string, error) {
 	return values, code, nil
 }
 
-func Parse(code string) ([]data.Value, error) {
+func ParseValue(code string) (data.Value, error) {
+	value, excessCode, err := parseValue(code)
+	if err != nil {
+		return nil, err
+	}
+	if len(excessCode) > 0 {
+		return nil, errors.New("excess code")
+	}
+	return value, nil
+}
+
+func ParseList(code string) ([]data.Value, error) {
 	values, excessCode, err := parseList(code)
 	if err != nil {
 		return nil, err
