@@ -2,14 +2,15 @@ import sys
 from typing import List
 
 from minilisp import data
-from minilisp import environments
+from minilisp import eval
 from minilisp import parser
+from minilisp import stdenv
 
 
 def repr_main() -> int:
-    env = environments.make_top_level_env()
+    env = stdenv.make_top_level_env()
     while True:
-        sys.stdout.write('minilisp> ')
+        sys.stdout.write('> ')
         sys.stdout.flush()
         try:
             code = input()
@@ -18,7 +19,7 @@ def repr_main() -> int:
         result = data.UNDEF
         try:
             for expr in parser.parse(code):
-                result = env.evaluate(expr)
+                result = eval.evaluate(env, expr)
         except Exception as e:
             print('ERROR', *e.args)
         print(result)
@@ -28,9 +29,9 @@ def repr_main() -> int:
 def batch_main(path: str) -> int:
     with open(path, 'r') as f:
         code = f.read()
-    env = environments.make_top_level_env()
+    env = stdenv.make_top_level_env()
     for expr in parser.parse(code):
-        env.evaluate(expr)
+        eval.evaluate(env, expr)
     return 0
 
 

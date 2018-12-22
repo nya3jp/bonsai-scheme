@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Callable, Dict, List, Union
+from typing import Callable, Dict, List, Union, Optional
 
 
 class Value(abc.ABC):
@@ -133,3 +133,30 @@ def from_native_list(values: List[Value]) -> ListValue:
     for value in reversed(values):
         list_value = PairValue(value, list_value)
     return list_value
+
+
+class Variable:
+    value: Value
+
+    def __init__(self):
+        self.value = UNDEF
+
+
+class Environment:
+    parent: Optional['Environment']
+    vars: Dict[str, Variable]
+
+    def __init__(self, parent: Optional['Environment']):
+        self.parent = parent
+        self.vars = {}
+
+    def ensure(self, name: str) -> Variable:
+        if name not in self.vars:
+            self.vars[name] = Variable()
+        return self.vars[name]
+
+    def lookup(self, name: str) -> Variable:
+        if name in self.vars:
+            return self.vars[name]
+        assert self.parent is not None, 'not found: %s' % name
+        return self.parent.lookup(name)

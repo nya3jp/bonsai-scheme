@@ -1,28 +1,28 @@
 from typing import Callable, Dict, List
 
 from minilisp import data
-from minilisp import environments
+from minilisp import eval
 
 
-def _evaluate_body(env: 'environments.Environment', body: List[data.Value]) -> data.Value:
+def _evaluate_body(env: data.Environment, body: List[data.Value]) -> data.Value:
     result = data.UNDEF
     for expr in body:
-        result = env.evaluate(expr)
+        result = eval.evaluate(env, expr)
     return result
 
 
-def _form_quote(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_quote(env: data.Environment, args: List[data.Value]) -> data.Value:
     del env  # unused
     assert len(args) == 1
     value = args[0]
     return value
 
 
-def _form_begin(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_begin(env: data.Environment, args: List[data.Value]) -> data.Value:
     return _evaluate_body(env, args)
 
 
-def _make_func_value(env: 'environments.Environment', name: str, params_value: data.Value, body: List[data.Value]) -> data.FunctionValue:
+def _make_func_value(env: data.Environment, name: str, params_value: data.Value, body: List[data.Value]) -> data.FunctionValue:
     # TODO: support variable args
     params = []
     for value in data.to_native_list(params_value):
@@ -32,7 +32,7 @@ def _make_func_value(env: 'environments.Environment', name: str, params_value: d
     def func_impl(args: List[data.Value]) -> data.Value:
         # TODO: handle internal defines properly
         assert len(args) == len(params), 'arg count mismatch'
-        func_env = environments.Environment(parent=env)
+        func_env = data.Environment(parent=env)
         for param, arg in zip(params, args):
             func_env.ensure(param).value = arg
         return _evaluate_body(func_env, body)
@@ -40,19 +40,19 @@ def _make_func_value(env: 'environments.Environment', name: str, params_value: d
     return data.FunctionValue(name, func_impl)
 
 
-def _form_lambda(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_lambda(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) >= 2
     return _make_func_value(env, '<lambda>', args[0], args[1:])
 
 
-def _form_define(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_define(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) >= 2
 
     target = args[0]
     if isinstance(target, data.SymbolValue):
         assert len(args) == 2
         name = target.name
-        value = env.evaluate(args[1])
+        value = eval.evaluate(env, args[1])
         env.ensure(name).value = value
         return data.UNDEF
 
@@ -66,48 +66,48 @@ def _form_define(env: 'environments.Environment', args: List[data.Value]) -> dat
     return data.UNDEF
 
 
-def _form_set(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_set(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     target = args[0]
     assert isinstance(target, data.SymbolValue)
     name = target.name
-    value = env.evaluate(args[1])
+    value = eval.evaluate(env, args[1])
     env.lookup(name).value = value
     return data.UNDEF
 
 
-def _form_if(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_if(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) in (2, 3)
 
     test_expr, true_expr = args[:2]
     false_expr = args[2] if len(args) == 3 else data.UNDEF
 
-    test_value = env.evaluate(test_expr)
-    return env.evaluate(true_expr if test_value is not data.FALSE else false_expr)
+    test_value = eval.evaluate(env, test_expr)
+    return eval.evaluate(env, true_expr if test_value is not data.FALSE else false_expr)
 
 
-def _form_cond(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_cond(env: data.Environment, args: List[data.Value]) -> data.Value:
     clauses = [data.to_native_list(arg) for arg in args]
     for clause in clauses:
         if (clause[0] == data.SymbolValue('else') or
-                env.evaluate(clause[0]) is not data.FALSE):
+                eval.evaluate(env, clause[0]) is not data.FALSE):
             return _evaluate_body(env, clause[1:])
     return data.UNDEF
 
 
-def _form_let(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_let(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) >= 1
-    let_env = environments.Environment(parent=env)
+    let_env = data.Environment(parent=env)
     for pair_expr in data.to_native_list(args[0]):
         pair = data.to_native_list(pair_expr)
         assert len(pair) == 2
         target, expr = pair
         assert isinstance(target, data.SymbolValue)
-        let_env.ensure(target.name).value = env.evaluate(expr)
+        let_env.ensure(target.name).value = eval.evaluate(env, expr)
     return _evaluate_body(let_env, args[1:])
 
 
-def _form_let_star(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_let_star(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) >= 1
     let_env = env
     for pair_expr in data.to_native_list(args[0]):
@@ -116,24 +116,24 @@ def _form_let_star(env: 'environments.Environment', args: List[data.Value]) -> d
         target, expr = pair
         assert isinstance(target, data.SymbolValue)
         parent_env = let_env
-        let_env = environments.Environment(parent=parent_env)
-        let_env.ensure(target.name).value = parent_env.evaluate(expr)
+        let_env = data.Environment(parent=parent_env)
+        let_env.ensure(target.name).value = eval.evaluate(parent_env, expr)
     return _evaluate_body(let_env, args[1:])
 
 
-def _form_letrec(env: 'environments.Environment', args: List[data.Value]) -> data.Value:
+def _form_letrec(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) >= 1
-    let_env = environments.Environment(parent=env)
+    let_env = data.Environment(parent=env)
     for pair_expr in data.to_native_list(args[0]):
         pair = data.to_native_list(pair_expr)
         assert len(pair) == 2
         target, expr = pair
         assert isinstance(target, data.SymbolValue)
-        let_env.ensure(target.name).value = let_env.evaluate(expr)
+        let_env.ensure(target.name).value = eval.evaluate(let_env, expr)
     return _evaluate_body(let_env, args[1:])
 
 
-ALL_MAP: Dict[str, Callable[['environments.Environment', List[data.Value]], data.Value]] = {
+ALL_MAP: Dict[str, Callable[[data.Environment, List[data.Value]], data.Value]] = {
     'quote': _form_quote,
     'begin': _form_begin,
     'lambda': _form_lambda,
