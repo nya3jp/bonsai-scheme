@@ -152,86 +152,53 @@ func cond(env *data.Env, rawArgs []data.Value) (data.Value, error) {
 	return data.TheUndef, nil
 }
 
-func let(env *data.Env, rawArgs []data.Value) (data.Value, error) {
+type letEnvFunc func(curEnv, origEnv *data.Env) (nextEnv, evalEnv *data.Env)
+
+func letCommon(name string, env *data.Env, rawArgs []data.Value, letEnvFunc letEnvFunc) (data.Value, error) {
 	bindingValues, err := data.ValueToSlice(rawArgs[0])
 	if err != nil {
-		return nil, fmt.Errorf("malformed let: 2-size lists expected")
+		return nil, fmt.Errorf("malformed %s: 2-size lists expected", name)
 	}
-	letEnv := data.NewEnv(env)
+	curEnv := data.NewEnv(env)
 	for _, bindingValue := range bindingValues {
 		binding, err := data.ValueToSlice(bindingValue)
 		if err != nil {
-			return nil, fmt.Errorf("malformed let: %v", err)
+			return nil, fmt.Errorf("malformed %s: %v", name, err)
 		}
 		if len(binding) != 2 {
-			return nil, errors.New("malformed let: 2-size lists expected")
+			return nil, fmt.Errorf("malformed %s: 2-size lists expected", name)
 		}
 		sym, ok := binding[0].(*data.Symbol)
 		if !ok {
-			return nil, errors.New("malformed let: symbol expected")
+			return nil, fmt.Errorf("malformed %s: symbol expected", name)
 		}
-		value, err := Evaluate(env, binding[1])
+		nextEnv, evalEnv := letEnvFunc(curEnv, env)
+		value, err := Evaluate(evalEnv, binding[1])
 		if err != nil {
 			return nil, err
 		}
-		letEnv.Ensure(sym.Name).Value = value
+		curEnv = nextEnv
+		curEnv.Ensure(sym.Name).Value = value
 	}
-	return evalBody(letEnv, rawArgs[1:])
+	return evalBody(curEnv, rawArgs[1:])
+}
+
+func let(env *data.Env, rawArgs []data.Value) (data.Value, error) {
+	return letCommon("let", env, rawArgs, func(curEnv, origEnv *data.Env) (nextEnv, evalEnv *data.Env) {
+		return curEnv, origEnv
+	})
 }
 
 func letStar(env *data.Env, rawArgs []data.Value) (data.Value, error) {
-	bindingValues, err := data.ValueToSlice(rawArgs[0])
-	if err != nil {
-		return nil, fmt.Errorf("malformed let*: 2-size lists expected")
-	}
-	letEnv := data.NewEnv(env)
-	for _, bindingValue := range bindingValues {
-		binding, err := data.ValueToSlice(bindingValue)
-		if err != nil {
-			return nil, fmt.Errorf("malformed let*: %v", err)
-		}
-		if len(binding) != 2 {
-			return nil, errors.New("malformed let*: 2-size lists expected")
-		}
-		sym, ok := binding[0].(*data.Symbol)
-		if !ok {
-			return nil, errors.New("malformed let*: symbol expected")
-		}
-		value, err := Evaluate(letEnv, binding[1])
-		if err != nil {
-			return nil, err
-		}
-		letEnv = data.NewEnv(letEnv)
-		letEnv.Ensure(sym.Name).Value = value
-	}
-	return evalBody(letEnv, rawArgs[1:])
+	return letCommon("let*", env, rawArgs, func(curEnv, origEnv *data.Env) (nextEnv, evalEnv *data.Env) {
+		return data.NewEnv(curEnv), curEnv
+	})
 }
 
 func letrec(env *data.Env, rawArgs []data.Value) (data.Value, error) {
-	bindingValues, err := data.ValueToSlice(rawArgs[0])
-	if err != nil {
-		return nil, fmt.Errorf("malformed letrec: 2-size lists expected")
-	}
-	letEnv := data.NewEnv(env)
-	for _, bindingValue := range bindingValues {
-		binding, err := data.ValueToSlice(bindingValue)
-		if err != nil {
-			return nil, fmt.Errorf("malformed letrec: %v", err)
-		}
-		if len(binding) != 2 {
-			return nil, errors.New("malformed letrec: 2-size lists expected")
-		}
-		sym, ok := binding[0].(*data.Symbol)
-		if !ok {
-			return nil, errors.New("malformed letrec: symbol expected")
-		}
-		value, err := Evaluate(letEnv, binding[1])
-		if err != nil {
-			return nil, err
-		}
-		letEnv.Ensure(sym.Name).Value = value
-	}
-	return evalBody(letEnv, rawArgs[1:])
+	return letCommon("letrec", env, rawArgs, func(curEnv, origEnv *data.Env) (nextEnv, evalEnv *data.Env) {
+		return curEnv, curEnv
+	})
 }
 
 func set(env *data.Env, rawArgs []data.Value) (data.Value, error) {
