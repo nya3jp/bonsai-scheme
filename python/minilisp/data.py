@@ -70,8 +70,19 @@ class PairValue(Value):
         self.cdr = cdr
 
     def __str__(self) -> str:
-        # TODO: Prefer list styles.
-        return '(%s . %s)' % (self.car, self.cdr)
+        v = ['(', str(self.car)]
+        cur = self.cdr
+        while True:
+            if isinstance(cur, NullValue):
+                v.append(')')
+                break
+            elif isinstance(cur, PairValue):
+                v.extend([' ', str(cur.car)])
+                cur = cur.cdr
+            else:
+                v.extend([' . ', str(cur), ')'])
+                break
+        return ''.join(v)
 
 
 class NullValue(Value):
@@ -116,7 +127,7 @@ class FunctionValue(Value):
         return self.native_func(args)
 
     def __str__(self) -> str:
-        return '<func %s>' % self.name
+        return self.name
 
 
 def to_native_list(list_value: ListValue) -> List[Value]:
