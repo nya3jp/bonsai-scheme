@@ -5,10 +5,11 @@ module MiniLisp.Forms(
 import Control.Monad
 import Data.IORef
 import MiniLisp.Data
-import {-# SOURCE #-} MiniLisp.Environment as E
+import MiniLisp.Environment as E
+import {-# SOURCE #-} MiniLisp.Evaluate
 
 evaluateBody :: E.Env -> [Value] -> IO Value
-evaluateBody env = foldM (\_ -> E.evaluate env) Undef
+evaluateBody env = foldM (\_ -> evaluate env) Undef
 
 makeFunction :: E.Env -> String -> [Value] -> [Value] -> Value
 makeFunction env name params body =
@@ -44,7 +45,7 @@ formLet env (bindings:body) = do
         handleBinding binding =
           case valueToList binding of
             [Symbol name, expr] -> do
-              value <- E.evaluate env expr
+              value <- evaluate env expr
               var <- E.ensure letEnv name
               writeIORef var value
             _ -> error "let"
@@ -60,7 +61,7 @@ formLetStar env (bindings:body) = do
       env'' <- newEnv $ Just env'
       case valueToList binding of
         [Symbol name, expr] -> do
-          value <- E.evaluate env' expr
+          value <- evaluate env' expr
           var <- E.ensure env'' name
           writeIORef var value
         _ -> error "let*"
@@ -78,7 +79,7 @@ formLetRec env (bindings:body) = do
         handleBinding binding =
           case valueToList binding of
             [Symbol name, expr] -> do
-              value <- E.evaluate letEnv expr
+              value <- evaluate letEnv expr
               var <- E.ensure letEnv name
               writeIORef var value
             _ -> error "letrec"
@@ -86,7 +87,7 @@ formLetRec _ [] = error "letrec"
 
 formDefine :: E.Env -> [Value] -> IO Value
 formDefine env [Symbol name, expr] = do
-  value <- E.evaluate env expr
+  value <- evaluate env expr
   var <- E.ensure env name
   writeIORef var value
   return Undef
@@ -107,11 +108,11 @@ formLambda _ _ = error "lambda"
 
 formIf :: E.Env -> [Value] -> IO Value
 formIf env [testExpr, thenExpr] = do
-  testValue <- E.evaluate env testExpr
-  if valueToBool testValue then E.evaluate env thenExpr else return Undef
+  testValue <- evaluate env testExpr
+  if valueToBool testValue then evaluate env thenExpr else return Undef
 formIf env [testExpr, thenExpr, elseExpr] = do
-  testValue <- E.evaluate env testExpr
-  E.evaluate env $ if valueToBool testValue then thenExpr else elseExpr
+  testValue <- evaluate env testExpr
+  evaluate env $ if valueToBool testValue then thenExpr else elseExpr
 formIf _ _ = error "if"
 
 formCond :: E.Env -> [Value] -> IO Value
@@ -120,7 +121,7 @@ formCond env (branch:restBranches) =
   case valueToList branch of
     (Symbol "else" : body) -> evaluateBody env body
     (testExpr : body) -> do
-      testValue <- E.evaluate env testExpr
+      testValue <- evaluate env testExpr
       if valueToBool testValue
         then evaluateBody env body
         else formCond env restBranches
@@ -128,7 +129,7 @@ formCond env (branch:restBranches) =
 
 formSet :: E.Env -> [Value] -> IO Value
 formSet env [Symbol name, expr] = do
-  value <- E.evaluate env expr
+  value <- evaluate env expr
   maybeVar <- E.lookup env name
   case maybeVar of
     Just var -> do

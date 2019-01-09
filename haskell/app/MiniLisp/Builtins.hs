@@ -4,7 +4,7 @@ module MiniLisp.Builtins(
 
 import Data.IORef
 import MiniLisp.Data
-import {-# SOURCE #-} MiniLisp.Environment as E
+import MiniLisp.Environment
 
 valueToInt :: Value -> Int
 valueToInt (Integer a) = a
@@ -80,7 +80,7 @@ builtinCdr :: [Value] -> Value
 builtinCdr [Pair _ cdr] = cdr
 builtinCdr _ = error "cdr"
 
-installBuiltins :: E.Env -> IO ()
+installBuiltins :: Env -> IO ()
 installBuiltins env = do
   installIO "print" builtinPrint
   installPure "and" builtinAnd
@@ -101,6 +101,6 @@ installBuiltins env = do
   installPure "cdr" builtinCdr
   where
     installIO name func = do
-      var <- E.ensure env name
+      var <- ensure env name
       writeIORef var $ Function name func
     installPure name func = installIO name $ return . func
