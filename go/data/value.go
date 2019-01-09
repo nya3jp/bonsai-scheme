@@ -109,7 +109,19 @@ func (v *Symbol) String() string {
 	return v.Name
 }
 
-type FuncValue interface {
-	Value
-	Apply(args []Value) (Value, error)
+type Func struct {
+	name string
+	f    func(args []Value) (Value, error)
+}
+
+func NewFunc(name string, f func(args []Value) (Value, error)) *Func {
+	return &Func{name, f}
+}
+
+func (v *Func) String() string {
+	return v.name
+}
+
+func (v *Func) Call(args []Value) (Value, error) {
+	return v.f(args)
 }

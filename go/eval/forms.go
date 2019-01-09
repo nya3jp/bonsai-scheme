@@ -30,43 +30,31 @@ func begin(env *data.Env, rawArgs []data.Value) (data.Value, error) {
 	return evalBody(env, rawArgs)
 }
 
-type lambdaFunc struct {
-	parentEnv *data.Env
-	name      string
-	params    []string
-	body      []data.Value
-}
-
-func (f *lambdaFunc) String() string {
-	return f.name
-}
-
-func (f *lambdaFunc) Apply(args []data.Value) (data.Value, error) {
-	env := data.NewEnv(f.parentEnv)
-	if len(args) != len(f.params) {
-		return nil, fmt.Errorf("function got %d arg(s); want %d", len(args), len(f.params))
-	}
-	for i, param := range f.params {
-		arg := args[i]
-		env.Ensure(param).Value = arg
-	}
-	return evalBody(env, f.body)
-}
-
-func newLambdaFunc(env *data.Env, name string, rawParamsValue data.Value, body []data.Value) (*lambdaFunc, error) {
-	var params []string
+func newLambdaFunc(env *data.Env, name string, rawParamsValue data.Value, body []data.Value) (*data.Func, error) {
 	rawParams, err := data.ValueToSlice(rawParamsValue)
 	if err != nil {
 		return nil, fmt.Errorf("malformed parameter list: %v", err)
 	}
-	for _, rawParam := range rawParams {
+	params := make([]string, len(rawParams))
+	for i, rawParam := range rawParams {
 		sym, ok := rawParam.(*data.Symbol)
 		if !ok {
 			return nil, errors.New("non-symbol parameter")
 		}
-		params = append(params, sym.Name)
+		params[i] = sym.Name
 	}
-	return &lambdaFunc{env, name, params, body}, nil
+	f := data.NewFunc(name, func(args []data.Value) (data.Value, error) {
+		env := data.NewEnv(env)
+		if len(args) != len(params) {
+			return nil, fmt.Errorf("function got %d arg(s); want %d", len(args), len(params))
+		}
+		for i, param := range params {
+			arg := args[i]
+			env.Ensure(param).Value = arg
+		}
+		return evalBody(env, body)
+	})
+	return f, nil
 }
 
 func lambda(env *data.Env, rawArgs []data.Value) (data.Value, error) {

@@ -31,7 +31,7 @@ func Evaluate(env *data.Env, expr data.Value) (data.Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		fun, ok := v.(data.FuncValue)
+		fun, ok := v.(*data.Func)
 		if !ok {
 			return nil, errors.New("can not call non-function value")
 		}
@@ -43,7 +43,7 @@ func Evaluate(env *data.Env, expr data.Value) (data.Value, error) {
 			}
 			args = append(args, v)
 		}
-		return fun.Apply(args)
+		return fun.Call(args)
 	default:
 		return nil, fmt.Errorf("not evaluatable: %s", expr)
 	}
