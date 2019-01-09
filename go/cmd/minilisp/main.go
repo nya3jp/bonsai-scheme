@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"minilisp/data"
-	"minilisp/eval"
-	"minilisp/parser"
+	"github.com/nya3jp/minilisp/go/data"
+	"github.com/nya3jp/minilisp/go/eval"
+	"github.com/nya3jp/minilisp/go/parser"
 )
 
 func batchMain(filename string) error {

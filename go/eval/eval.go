@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"minilisp/data"
+	"github.com/nya3jp/minilisp/go/data"
 )
 
 func Evaluate(env *data.Env, expr data.Value) (data.Value, error) {
