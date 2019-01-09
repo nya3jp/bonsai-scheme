@@ -14,124 +14,124 @@ def _builtin_add(args: List[data.Value]) -> data.Value:
     assert args
     result = 0
     for value in args:
-        assert isinstance(value, data.IntegerValue)
+        assert isinstance(value, data.Int)
         result += value.raw_value
-    return data.IntegerValue(result)
+    return data.Int(result)
 
 
 def _builtin_sub(args: List[data.Value]) -> data.Value:
     assert args
     first_value = args[0]
-    assert isinstance(first_value, data.IntegerValue), 'not integer'
+    assert isinstance(first_value, data.Int), 'not integer'
     result = first_value.raw_value
     for value in args[1:]:
-        assert isinstance(value, data.IntegerValue), 'not integer'
+        assert isinstance(value, data.Int), 'not integer'
         result -= value.raw_value
-    return data.IntegerValue(result)
+    return data.Int(result)
 
 
 def _builtin_mul(args: List[data.Value]) -> data.Value:
     assert args
     result = 1
     for value in args:
-        assert isinstance(value, data.IntegerValue), 'not integer'
+        assert isinstance(value, data.Int), 'not integer'
         result *= value.raw_value
-    return data.IntegerValue(result)
+    return data.Int(result)
 
 
 def _builtin_div(args: List[data.Value]) -> data.Value:
     assert args
     first_value = args[0]
-    assert isinstance(first_value, data.IntegerValue), 'not integer'
+    assert isinstance(first_value, data.Int), 'not integer'
     result = first_value.raw_value
     for value in args[1:]:
-        assert isinstance(value, data.IntegerValue), 'not integer'
+        assert isinstance(value, data.Int), 'not integer'
         result //= value.raw_value
-    return data.IntegerValue(result)
+    return data.Int(result)
 
 
 def _builtin_eq(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     lhs, rhs = args
-    assert isinstance(lhs, data.IntegerValue), 'not integer'
-    assert isinstance(rhs, data.IntegerValue), 'not integer'
-    return data.BooleanValue(lhs.raw_value == rhs.raw_value)
+    assert isinstance(lhs, data.Int), 'not integer'
+    assert isinstance(rhs, data.Int), 'not integer'
+    return data.Bool(lhs.raw_value == rhs.raw_value)
 
 
 def _builtin_lt(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     lhs, rhs = args
-    assert isinstance(lhs, data.IntegerValue), 'not integer'
-    assert isinstance(rhs, data.IntegerValue), 'not integer'
-    return data.BooleanValue(lhs.raw_value < rhs.raw_value)
+    assert isinstance(lhs, data.Int), 'not integer'
+    assert isinstance(rhs, data.Int), 'not integer'
+    return data.Bool(lhs.raw_value < rhs.raw_value)
 
 
 def _builtin_lte(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     lhs, rhs = args
-    assert isinstance(lhs, data.IntegerValue), 'not integer'
-    assert isinstance(rhs, data.IntegerValue), 'not integer'
-    return data.BooleanValue(lhs.raw_value <= rhs.raw_value)
+    assert isinstance(lhs, data.Int), 'not integer'
+    assert isinstance(rhs, data.Int), 'not integer'
+    return data.Bool(lhs.raw_value <= rhs.raw_value)
 
 
 def _builtin_gt(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     lhs, rhs = args
-    assert isinstance(lhs, data.IntegerValue), 'not integer'
-    assert isinstance(rhs, data.IntegerValue), 'not integer'
-    return data.BooleanValue(lhs.raw_value > rhs.raw_value)
+    assert isinstance(lhs, data.Int), 'not integer'
+    assert isinstance(rhs, data.Int), 'not integer'
+    return data.Bool(lhs.raw_value > rhs.raw_value)
 
 
 def _builtin_gte(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     lhs, rhs = args
-    assert isinstance(lhs, data.IntegerValue), 'not integer'
-    assert isinstance(rhs, data.IntegerValue), 'not integer'
-    return data.BooleanValue(lhs.raw_value >= rhs.raw_value)
+    assert isinstance(lhs, data.Int), 'not integer'
+    assert isinstance(rhs, data.Int), 'not integer'
+    return data.Bool(lhs.raw_value >= rhs.raw_value)
 
 
 def _builtin_and(args: List[data.Value]) -> data.Value:
     result = True
     for value in args:
         result = result and value != data.FALSE
-    return data.BooleanValue(result)
+    return data.Bool(result)
 
 
 def _builtin_or(args: List[data.Value]) -> data.Value:
     result = False
     for value in args:
         result = result or value != data.FALSE
-    return data.BooleanValue(result)
+    return data.Bool(result)
 
 
 def _builtin_not(args: List[data.Value]) -> data.Value:
     assert len(args) == 1
     value = args[0]
-    return data.BooleanValue(not (value != data.FALSE))
+    return data.Bool(not (value != data.FALSE))
 
 
 def _builtin_eq_check(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     lhs, rhs = args
-    return data.BooleanValue(lhs is rhs)
+    return data.Bool(lhs is rhs)
 
 
 def _builtin_cons(args: List[data.Value]) -> data.Value:
     assert len(args) == 2
-    return data.PairValue(args[0], args[1])
+    return data.Pair(args[0], args[1])
 
 
 def _builtin_car(args: List[data.Value]) -> data.Value:
     assert len(args) == 1
     value = args[0]
-    assert isinstance(value, data.PairValue), 'not pair'
+    assert isinstance(value, data.Pair), 'not pair'
     return value.car
 
 
 def _builtin_cdr(args: List[data.Value]) -> data.Value:
     assert len(args) == 1
     value = args[0]
-    assert isinstance(value, data.PairValue), 'not pair'
+    assert isinstance(value, data.Pair), 'not pair'
     return value.cdr
 
 

@@ -4,12 +4,12 @@ from minilisp import forms
 
 def evaluate(env: data.Environment, expr: data.Value) -> data.Value:
     # print('DEBUG: evaluate: %s' % expr)
-    if isinstance(expr, (data.NullValue, data.BooleanValue, data.IntegerValue)):
+    if isinstance(expr, (data.Null, data.Bool, data.Int)):
         return expr
-    if isinstance(expr, data.SymbolValue):
+    if isinstance(expr, data.Symbol):
         return env.lookup(expr.name).value
-    if isinstance(expr, data.PairValue):
-        if isinstance(expr.car, data.SymbolValue):
+    if isinstance(expr, data.Pair):
+        if isinstance(expr.car, data.Symbol):
             name = expr.car.name
             form_func = forms.ALL_MAP.get(name)
             if form_func:

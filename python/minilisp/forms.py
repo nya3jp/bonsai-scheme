@@ -22,11 +22,11 @@ def _form_begin(env: data.Environment, args: List[data.Value]) -> data.Value:
     return _evaluate_body(env, args)
 
 
-def _make_func_value(env: data.Environment, name: str, params_value: data.Value, body: List[data.Value]) -> data.FunctionValue:
+def _make_func_value(env: data.Environment, name: str, params_value: data.Value, body: List[data.Value]) -> data.Func:
     # TODO: support variable args
     params = []
     for value in data.to_native_list(params_value):
-        assert isinstance(value, data.SymbolValue)
+        assert isinstance(value, data.Symbol)
         params.append(value.name)
 
     def func_impl(args: List[data.Value]) -> data.Value:
@@ -37,7 +37,7 @@ def _make_func_value(env: data.Environment, name: str, params_value: data.Value,
             func_env.ensure(param).value = arg
         return _evaluate_body(func_env, body)
 
-    return data.FunctionValue(name, func_impl)
+    return data.Func(name, func_impl)
 
 
 def _form_lambda(env: data.Environment, args: List[data.Value]) -> data.Value:
@@ -49,15 +49,15 @@ def _form_define(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) >= 2
 
     target = args[0]
-    if isinstance(target, data.SymbolValue):
+    if isinstance(target, data.Symbol):
         assert len(args) == 2
         name = target.name
         value = eval.evaluate(env, args[1])
         env.ensure(name).value = value
         return data.UNDEF
 
-    assert isinstance(target, data.PairValue)
-    assert isinstance(target.car, data.SymbolValue)
+    assert isinstance(target, data.Pair)
+    assert isinstance(target.car, data.Symbol)
 
     name = target.car.name
     func_value = _make_func_value(env, name, target.cdr, args[1:])
@@ -69,7 +69,7 @@ def _form_define(env: data.Environment, args: List[data.Value]) -> data.Value:
 def _form_set(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) == 2
     target = args[0]
-    assert isinstance(target, data.SymbolValue)
+    assert isinstance(target, data.Symbol)
     name = target.name
     value = eval.evaluate(env, args[1])
     env.lookup(name).value = value
@@ -89,7 +89,7 @@ def _form_if(env: data.Environment, args: List[data.Value]) -> data.Value:
 def _form_cond(env: data.Environment, args: List[data.Value]) -> data.Value:
     clauses = [data.to_native_list(arg) for arg in args]
     for clause in clauses:
-        if (clause[0] == data.SymbolValue('else') or
+        if (clause[0] == data.Symbol('else') or
                 eval.evaluate(env, clause[0]) is not data.FALSE):
             return _evaluate_body(env, clause[1:])
     return data.UNDEF
@@ -102,7 +102,7 @@ def _form_let(env: data.Environment, args: List[data.Value]) -> data.Value:
         pair = data.to_native_list(pair_expr)
         assert len(pair) == 2
         target, expr = pair
-        assert isinstance(target, data.SymbolValue)
+        assert isinstance(target, data.Symbol)
         let_env.ensure(target.name).value = eval.evaluate(env, expr)
     return _evaluate_body(let_env, args[1:])
 
@@ -114,7 +114,7 @@ def _form_let_star(env: data.Environment, args: List[data.Value]) -> data.Value:
         pair = data.to_native_list(pair_expr)
         assert len(pair) == 2
         target, expr = pair
-        assert isinstance(target, data.SymbolValue)
+        assert isinstance(target, data.Symbol)
         parent_env = let_env
         let_env = data.Environment(parent=parent_env)
         let_env.ensure(target.name).value = eval.evaluate(parent_env, expr)
@@ -128,7 +128,7 @@ def _form_letrec(env: data.Environment, args: List[data.Value]) -> data.Value:
         pair = data.to_native_list(pair_expr)
         assert len(pair) == 2
         target, expr = pair
-        assert isinstance(target, data.SymbolValue)
+        assert isinstance(target, data.Symbol)
         let_env.ensure(target.name).value = eval.evaluate(let_env, expr)
     return _evaluate_body(let_env, args[1:])
 

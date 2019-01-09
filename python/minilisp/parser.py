@@ -12,8 +12,8 @@ class ParseError(Exception):
     pass
 
 
-def _make_quote(value: data.Value) -> data.PairValue:
-    return data.from_native_list([data.SymbolValue('quote'), value])
+def _make_quote(value: data.Value) -> data.Pair:
+    return data.from_native_list([data.Symbol('quote'), value])
 
 
 def _parse_skip(code: str) -> str:
@@ -37,13 +37,13 @@ def _parse_value(code: str) -> Tuple[data.Value, str]:
         raise ParseError(code)
     token = match.group()
     if _NUM_RE.search(token):
-        value = data.IntegerValue(int(token))
+        value = data.Int(int(token))
     elif token == '#f':
-        value = data.BooleanValue(False)
+        value = data.Bool(False)
     elif token == '#t':
-        value = data.BooleanValue(True)
+        value = data.Bool(True)
     else:
-        value = data.SymbolValue(token)
+        value = data.Symbol(token)
     return value, code[match.end():]
 
 

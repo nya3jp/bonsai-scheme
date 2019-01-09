@@ -14,7 +14,7 @@ class Value(abc.ABC):
         return str(self)
 
 
-class BooleanValue(Value):
+class Bool(Value):
     raw_value: bool
 
     def __new__(cls, raw_value: bool):
@@ -30,11 +30,11 @@ class BooleanValue(Value):
         return '#t' if self.raw_value else '#f'
 
 
-FALSE = BooleanValue(False)
-TRUE = BooleanValue(True)
+FALSE = Bool(False)
+TRUE = Bool(True)
 
 
-class IntegerValue(Value):
+class Int(Value):
     raw_value: int
 
     def __init__(self, raw_value: int):
@@ -44,13 +44,13 @@ class IntegerValue(Value):
         return str(self.raw_value)
 
 
-class SymbolValue(Value):
-    _pool: Dict[str, 'SymbolValue'] = {}
+class Symbol(Value):
+    _pool: Dict[str, 'Symbol'] = {}
 
     name: str
 
     def __new__(cls, name: str):
-        pool = SymbolValue._pool
+        pool = Symbol._pool
         if name not in pool:
             value = super().__new__(cls)
             value.name = name
@@ -61,7 +61,7 @@ class SymbolValue(Value):
         return self.name
 
 
-class PairValue(Value):
+class Pair(Value):
     car: Value
     cdr: Value
 
@@ -73,10 +73,10 @@ class PairValue(Value):
         v = ['(', str(self.car)]
         cur = self.cdr
         while True:
-            if isinstance(cur, NullValue):
+            if isinstance(cur, Null):
                 v.append(')')
                 break
-            elif isinstance(cur, PairValue):
+            elif isinstance(cur, Pair):
                 v.extend([' ', str(cur.car)])
                 cur = cur.cdr
             else:
@@ -85,7 +85,7 @@ class PairValue(Value):
         return ''.join(v)
 
 
-class NullValue(Value):
+class Null(Value):
     def __new__(cls):
         try:
             return NULL
@@ -96,12 +96,10 @@ class NullValue(Value):
         return '()'
 
 
-NULL = NullValue()
-
-ListValue = Union[NullValue, PairValue]
+NULL = Null()
 
 
-class UndefinedValue(Value):
+class Undef(Value):
     def __new__(cls):
         try:
             return UNDEF
@@ -112,10 +110,10 @@ class UndefinedValue(Value):
         return '#undef'
 
 
-UNDEF = UndefinedValue()
+UNDEF = Undef()
 
 
-class FunctionValue(Value):
+class Func(Value):
     name: str
     native_func: Callable[[List[Value]], Value]
 
@@ -130,19 +128,19 @@ class FunctionValue(Value):
         return self.name
 
 
-def to_native_list(list_value: ListValue) -> List[Value]:
+def to_native_list(list_value: Union[Null, Pair]) -> List[Value]:
     values = []
-    while isinstance(list_value, PairValue):
+    while isinstance(list_value, Pair):
         values.append(list_value.car)
         list_value = list_value.cdr
     assert list_value is NULL
     return values
 
 
-def from_native_list(values: List[Value]) -> ListValue:
+def from_native_list(values: List[Value]) -> Union[Null, Pair]:
     list_value = NULL
     for value in reversed(values):
-        list_value = PairValue(value, list_value)
+        list_value = Pair(value, list_value)
     return list_value
 
 
