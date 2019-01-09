@@ -23,7 +23,6 @@ def _form_begin(env: data.Environment, args: List[data.Value]) -> data.Value:
 
 
 def _make_func_value(env: data.Environment, name: str, params_value: data.Value, body: List[data.Value]) -> data.Func:
-    # TODO: support variable args
     params = []
     for value in data.to_native_list(params_value):
         assert isinstance(value, data.Symbol)

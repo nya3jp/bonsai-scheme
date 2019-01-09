@@ -53,7 +53,6 @@ def _parse_list(code: str) -> Tuple[List[data.Value], str]:
         code = _parse_skip(code)
         if not code or code.startswith(')'):
             break
-        # TODO: Support dots.
         value, code = _parse_value(code)
         values.append(value)
     return values, code
