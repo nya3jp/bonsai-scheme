@@ -1,5 +1,5 @@
 [package]
-name = "minilisp"
+name = "minscheme"
 version = "0.1.0"
 authors = ["nya <takahashi.shuhei@gmail.com>"]
 

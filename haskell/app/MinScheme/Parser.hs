@@ -1,8 +1,8 @@
-module MiniLisp.Parser( parse ) where
+module MinScheme.Parser( parse ) where
 
 import Data.List
 import Data.Maybe
-import MiniLisp.Data
+import MinScheme.Data
 import Text.Regex
 
 parseSkip :: String -> String

@@ -1,7 +1,7 @@
-module MiniLisp.StandardEnv(newTopLevelEnv) where
+module MinScheme.StandardEnv(newTopLevelEnv) where
 
-import MiniLisp.Builtins
-import MiniLisp.Environment
+import MinScheme.Builtins
+import MinScheme.Environment
 
 newTopLevelEnv :: IO Env
 newTopLevelEnv = do

@@ -1,9 +1,9 @@
-module MiniLisp.Evaluate(evaluate) where
+module MinScheme.Evaluate(evaluate) where
 
 import Data.IORef
-import MiniLisp.Data
-import MiniLisp.Environment
-import MiniLisp.Forms
+import MinScheme.Data
+import MinScheme.Environment
+import MinScheme.Forms
 import Prelude hiding (lookup)
 
 evaluate :: Env -> Value -> IO Value

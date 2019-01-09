@@ -1,7 +1,7 @@
 import re
 from typing import List, Tuple
 
-from minilisp import data
+from minscheme import data
 
 _SKIP_RE = re.compile(r'^(\s+|;.*)+')
 _TOKEN_RE = re.compile(r'^[^\s);]+')

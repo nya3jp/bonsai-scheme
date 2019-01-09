@@ -1,5 +1,5 @@
-from minilisp import builtins
-from minilisp import data
+from minscheme import builtins
+from minscheme import data
 
 
 def make_top_level_env() -> data.Environment:

@@ -1,4 +1,4 @@
-module MiniLisp.Data(
+module MinScheme.Data(
   Value(..),
   valueToString,
   valueFromList,

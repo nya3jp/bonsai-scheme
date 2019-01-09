@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/nya3jp/minilisp/go/data"
-	"github.com/nya3jp/minilisp/go/eval"
-	"github.com/nya3jp/minilisp/go/parser"
+	"github.com/nya3jp/minscheme/go/data"
+	"github.com/nya3jp/minscheme/go/eval"
+	"github.com/nya3jp/minscheme/go/parser"
 )
 
 func batchMain(filename string) error {
@@ -61,7 +61,7 @@ func main() {
 	if len(os.Args) == 1 {
 		interactiveMain()
 	} else if len(os.Args) > 2 {
-		fmt.Fprintln(os.Stderr, "usage: minilisp <file>")
+		fmt.Fprintln(os.Stderr, "usage: minscheme <file>")
 	} else {
 		if err := batchMain(os.Args[1]); err != nil {
 			fmt.Fprintln(os.Stderr, "ERROR:", err)

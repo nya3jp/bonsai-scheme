@@ -1,10 +1,10 @@
 import sys
 from typing import List
 
-from minilisp import data
-from minilisp import eval
-from minilisp import parser
-from minilisp import stdenv
+from minscheme import data
+from minscheme import eval
+from minscheme import parser
+from minscheme import stdenv
 
 
 def repr_main() -> int:
@@ -40,7 +40,7 @@ def main(argv: List[str]) -> int:
         return repr_main()
     elif len(argv) == 2:
         return batch_main(argv[1])
-    print('usage: minilisp [file]')
+    print('usage: minscheme [file]')
     return 1
 
 

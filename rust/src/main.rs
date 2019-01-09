@@ -23,7 +23,7 @@ fn main() {
     } else if args.len() == 2 {
         Box::new(File::open(&args[1]).unwrap())
     } else {
-        println!("Usage: minilisp file");
+        println!("Usage: minscheme file");
         return;
     };
 

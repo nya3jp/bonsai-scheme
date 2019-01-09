@@ -1,6 +1,6 @@
 from typing import Callable, Dict, List
 
-from minilisp import data
+from minscheme import data
 
 
 def _builtin_print(args: List[data.Value]) -> data.Value:

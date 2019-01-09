@@ -1,4 +1,4 @@
-module MiniLisp.Environment(
+module MinScheme.Environment(
   Var,
   Env,
   newEnv,
@@ -8,7 +8,7 @@ module MiniLisp.Environment(
 
 import Data.IORef
 import qualified Data.Map.Lazy as M
-import MiniLisp.Data
+import MinScheme.Data
 import Prelude hiding (lookup)
 
 type Var = IORef Value

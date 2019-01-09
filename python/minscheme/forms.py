@@ -1,7 +1,7 @@
 from typing import Callable, Dict, List
 
-from minilisp import data
-from minilisp import eval
+from minscheme import data
+from minscheme import eval
 
 
 def _evaluate_body(env: data.Environment, body: List[data.Value]) -> data.Value:

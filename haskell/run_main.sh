@@ -2,4 +2,4 @@
 
 set -ex
 
-exec stack exec minilisp -- "$@"
+exec stack exec minscheme -- "$@"

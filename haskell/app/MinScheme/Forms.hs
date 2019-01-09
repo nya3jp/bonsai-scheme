@@ -1,12 +1,12 @@
-module MiniLisp.Forms(
+module MinScheme.Forms(
   lookupForm,
 ) where
 
 import Control.Monad
 import Data.IORef
-import MiniLisp.Data
-import MiniLisp.Environment as E
-import {-# SOURCE #-} MiniLisp.Evaluate
+import MinScheme.Data
+import MinScheme.Environment as E
+import {-# SOURCE #-} MinScheme.Evaluate
 
 evaluateBody :: E.Env -> [Value] -> IO Value
 evaluateBody env = foldM (\_ -> evaluate env) Undef

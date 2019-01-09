@@ -1,9 +1,9 @@
 module Main where
 
 import Control.Monad
-import MiniLisp.Evaluate
-import MiniLisp.StandardEnv
-import MiniLisp.Parser
+import MinScheme.Evaluate
+import MinScheme.StandardEnv
+import MinScheme.Parser
 import System.Environment
 
 readCode :: IO String

@@ -1,5 +1,5 @@
-from minilisp import data
-from minilisp import forms
+from minscheme import data
+from minscheme import forms
 
 
 def evaluate(env: data.Environment, expr: data.Value) -> data.Value:

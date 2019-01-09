@@ -1,10 +1,10 @@
-module MiniLisp.Builtins(
+module MinScheme.Builtins(
   installBuiltins,
 ) where
 
 import Data.IORef
-import MiniLisp.Data
-import MiniLisp.Environment
+import MinScheme.Data
+import MinScheme.Environment
 
 valueToInt :: Value -> Int
 valueToInt (Integer a) = a

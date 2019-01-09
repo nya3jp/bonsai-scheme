@@ -1,8 +1,8 @@
-name:                minilisp
+name:                minscheme
 version:             0.1.0.0
 -- synopsis:
 -- description:
-homepage:            https://github.com/nya3jp/minilisp
+homepage:            https://github.com/nya3jp/bonsai-scheme
 -- license:             BSD3
 -- license-file:        LICENSE
 author:              Shuhei Takahashi
@@ -13,16 +13,16 @@ build-type:          Simple
 -- extra-source-files:  README.md
 cabal-version:       >=1.10
 
-executable minilisp
+executable minscheme
   hs-source-dirs:      app
   main-is:             Main.hs
-  other-modules:       MiniLisp.Builtins
-                     , MiniLisp.Data
-                     , MiniLisp.Environment
-                     , MiniLisp.Evaluate
-                     , MiniLisp.Forms
-                     , MiniLisp.Parser
-                     , MiniLisp.StandardEnv
+  other-modules:       MinScheme.Builtins
+                     , MinScheme.Data
+                     , MinScheme.Environment
+                     , MinScheme.Evaluate
+                     , MinScheme.Forms
+                     , MinScheme.Parser
+                     , MinScheme.StandardEnv
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:       base
                      , containers
@@ -31,4 +31,4 @@ executable minilisp
 
 source-repository head
   type:     git
-  location: https://github.com/nya3jp/minilisp
+  location: https://github.com/nya3jp/bonsai-scheme

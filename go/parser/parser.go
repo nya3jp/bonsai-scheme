@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nya3jp/minilisp/go/data"
+	"github.com/nya3jp/minscheme/go/data"
 )
 
 var (

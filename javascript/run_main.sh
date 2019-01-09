@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly index="$(dirname "$0")/minilisp/index.js"
+readonly index="$(dirname "$0")/minscheme/index.js"
 
 set -ex
 
