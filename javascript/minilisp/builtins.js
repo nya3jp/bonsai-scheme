@@ -8,6 +8,6 @@ function print(value) {
 const ALL = new Map();
 ALL.set('print', new data.Func('print', print));
 
-module.exports = {
+Object.assign(module.exports, {
   ALL,
-};
+});

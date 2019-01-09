@@ -9,6 +9,6 @@ function createTopLevelEnv() {
   return env;
 }
 
-module.exports = {
+Object.assign(module.exports, {
   createTopLevelEnv,
-};
+});

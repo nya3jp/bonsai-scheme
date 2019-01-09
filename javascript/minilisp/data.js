@@ -202,7 +202,7 @@ class Environment {
   }
 }
 
-module.exports = {
+Object.assign(module.exports, {
   Undef,
   theUndef,
   Null,
@@ -218,4 +218,4 @@ module.exports = {
   Symbol,
   Func,
   Environment,
-};
+});

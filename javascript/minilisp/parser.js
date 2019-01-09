@@ -81,7 +81,7 @@ function parseList(code) {
   return values
 }
 
-module.exports = {
+Object.assign(module.exports, {
   parseValue,
   parseList,
-};
+});

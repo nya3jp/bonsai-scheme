@@ -1,4 +1,5 @@
 const data = require('./data.js');
+const forms = require('./forms.js');
 
 function evaluate(env, expr) {
   if (expr instanceof data.Undef || expr instanceof data.Bool || expr instanceof data.Int) {
@@ -9,8 +10,11 @@ function evaluate(env, expr) {
   }
   if (expr instanceof data.Pair) {
     const rawArgs = data.valueToArray(expr.cdr);
-    if (!(expr.car instanceof data.Symbol)) {
-      throw new Error('no form implemented');
+    if (expr.car instanceof data.Symbol) {
+      const form = forms.ALL.get(expr.car.name);
+      if (form) {
+        return form(env, ...rawArgs);
+      }
     }
     const func = evaluate(env, expr.car);
     if (!(func instanceof data.Func)) {
@@ -22,6 +26,6 @@ function evaluate(env, expr) {
   throw new Error('not evaluatable value');
 }
 
-module.exports = {
+Object.assign(module.exports, {
   evaluate,
-};
+});
