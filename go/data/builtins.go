@@ -190,19 +190,6 @@ func cdr(args []Value) (Value, error) {
 	return pair.Cdr, nil
 }
 
-type nativeFunc struct {
-	name string
-	fun  func(args []Value) (Value, error)
-}
-
-func (f *nativeFunc) String() string {
-	return f.name
-}
-
-func (f *nativeFunc) Apply(args []Value) (Value, error) {
-	return f.fun(args)
-}
-
 var builtins = map[string]*Func{
 	"print": NewFunc("print", print),
 	"+":     NewFunc("+", add),
