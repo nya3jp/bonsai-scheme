@@ -1,1 +1,1 @@
-module github.com/nya3jp/minscheme/go
+module github.com/nya3jp/bonsai-scheme/go

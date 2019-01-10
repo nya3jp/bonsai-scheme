@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/nya3jp/minscheme/go/data"
-	"github.com/nya3jp/minscheme/go/eval"
-	"github.com/nya3jp/minscheme/go/parser"
+	"github.com/nya3jp/bonsai-scheme/go/data"
+	"github.com/nya3jp/bonsai-scheme/go/eval"
+	"github.com/nya3jp/bonsai-scheme/go/parser"
 )
 
 func batchMain(filename string) error {

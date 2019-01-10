@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/nya3jp/minscheme/go/data"
+	"github.com/nya3jp/bonsai-scheme/go/data"
 )
 
 func Evaluate(env *data.Env, expr data.Value) (data.Value, error) {

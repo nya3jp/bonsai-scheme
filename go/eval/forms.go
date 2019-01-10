@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/nya3jp/minscheme/go/data"
+	"github.com/nya3jp/bonsai-scheme/go/data"
 )
 
 func quote(env *data.Env, rawArgs []data.Value) (data.Value, error) {
