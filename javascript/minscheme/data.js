@@ -58,10 +58,7 @@ class Pair extends Value {
   }
 
   equals(other) {
-    if (!(other instanceof Pair)) {
-      return false;
-    }
-    return this.car.equals(other.car) && this.cdr.equals(other.cdr);
+    return this === other;
   }
 }
 
