@@ -20,7 +20,7 @@ in many aspects, but notable differences are:
 Supported features:
 
 - Types: integer, boolean, nil, pair, symbol, function
-- Special forms: quote, begin, lambda, define, if, cond, let, let\*, letrec, set!
+- Special forms: quote, begin, lambda, define, if, cond, let, let\*, letrec, set!, set-car!, set-cdr!
 - Builtin functions: print, +, -, \*, /, =, <, <=, >, >=, and, or, not, eq?, cons, car, cdr
 
 
