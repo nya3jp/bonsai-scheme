@@ -209,19 +209,61 @@ func set(env *data.Env, rawArgs []data.Value) (data.Value, error) {
 	return data.TheUndef, nil
 }
 
+func setCar(env *data.Env, rawArgs []data.Value) (data.Value, error) {
+	if len(rawArgs) != 2 {
+		return nil, fmt.Errorf("set-car! got %d arg(s); want 2", len(rawArgs))
+	}
+	lhs, err := Evaluate(env, rawArgs[0])
+	if err != nil {
+		return nil, err
+	}
+	p, ok := lhs.(*data.Pair)
+	if !ok {
+		return nil, errors.New("malformed set-car!: not a pair")
+	}
+	rhs, err := Evaluate(env, rawArgs[1])
+	if err != nil {
+		return nil, err
+	}
+	p.Car = rhs
+	return data.TheUndef, nil
+}
+
+func setCdr(env *data.Env, rawArgs []data.Value) (data.Value, error) {
+	if len(rawArgs) != 2 {
+		return nil, fmt.Errorf("set-cdr! got %d arg(s); want 2", len(rawArgs))
+	}
+	lhs, err := Evaluate(env, rawArgs[0])
+	if err != nil {
+		return nil, err
+	}
+	p, ok := lhs.(*data.Pair)
+	if !ok {
+		return nil, errors.New("malformed set-cdr!: not a pair")
+	}
+	rhs, err := Evaluate(env, rawArgs[1])
+	if err != nil {
+		return nil, err
+	}
+	p.Cdr = rhs
+	return data.TheUndef, nil
+}
+
 var formMap map[string]func(*data.Env, []data.Value) (data.Value, error)
 
 func init() {
 	formMap = map[string]func(*data.Env, []data.Value) (data.Value, error){
-		"quote":  quote,
-		"begin":  begin,
-		"lambda": lambda,
-		"define": define,
-		"if":     ifs,
-		"cond":   cond,
-		"let":    let,
-		"let*":   letStar,
-		"letrec": letrec,
-		"set!":   set,
+		"quote":    quote,
+		"begin":    begin,
+		"lambda":   lambda,
+		"define":   define,
+		"if":       ifs,
+		"cond":     cond,
+		"let":      let,
+		"let*":     letStar,
+		"letrec":   letrec,
+		"set!":     set,
+		"set-car!": setCar,
+		"set-cdr!": setCdr,
 	}
 }
