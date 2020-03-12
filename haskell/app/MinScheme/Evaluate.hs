@@ -17,14 +17,19 @@ evaluate env expr =
       case result of
         Just var -> readIORef var
         Nothing -> error $ "name not found: " ++ name
-    Pair car cdr ->
-      case lookupFormByValue car of
-        Just form -> form env (valueToList cdr)
+    Pair car cdr -> do
+      car' <- readIORef car
+      cdr' <- readIORef cdr
+      case lookupFormByValue car' of
+        Just form -> do
+          args <- valueToList cdr'
+          form env args
         Nothing -> do
-          value <- evaluate env car
-          args <- mapM (evaluate env) (valueToList cdr)
+          value <- evaluate env car'
+          args <- valueToList cdr'
+          args' <- mapM (evaluate env) args
           case value of
-            Function _ f -> f args
+            Function _ f -> f args'
             _ -> error "not a function"
       where
         lookupFormByValue (Symbol name) = lookupForm name

@@ -12,21 +12,24 @@ parseSkip code =
   where
     skipRe = mkRegex "(^([ \t\r\n]|;.*)*)"
 
-makeQuote :: Value -> Value
+makeQuote :: Value -> IO Value
 makeQuote value =
   valueFromList [Symbol "quote", value]
 
-parseValue :: String -> (Value, String)
+parseValue :: String -> IO (Value, String)
 parseValue code =
   case code of
-    _ | "'" `isPrefixOf` code ->
-      let (value, code') = parseValue (tail code) in
-      (makeQuote value, code')
-    _ | "(" `isPrefixOf` code ->
-      let (values, code') = parseList (tail code) in
-      let code'' = parseSkip code' in
+    _ | "'" `isPrefixOf` code -> do
+      (value, code') <- parseValue (tail code)
+      quoted <- makeQuote value
+      return (quoted, code')
+    _ | "(" `isPrefixOf` code -> do
+      (values, code') <- parseList (tail code)
+      let code'' = parseSkip code'
       if ")" `isPrefixOf` code''
-        then (valueFromList values, tail code'')
+        then do
+          values' <- valueFromList values
+          return (values', tail code'')
         else error $ "parse error: malformed list: " ++ code''
     _ ->
       case matchRegex tokenRe code of
@@ -40,24 +43,24 @@ parseValue code =
               "#f" -> Boolean False
               _ -> Symbol token
           in
-            (value, code')
+            return (value, code')
         _ -> undefined
   where
     tokenRe = mkRegex "(^[^ \t\r\n);]+)"
     numRe = mkRegex "(-?[0-9]+$)"
 
-parseList :: String -> ([Value], String)
+parseList :: String -> IO ([Value], String)
 parseList code =
   let code' = parseSkip code in
   case code' of
-    "" -> ([], code')
-    _ | ")" `isPrefixOf` code' -> ([], code')
-    _ ->
-      let (value, code'') = parseValue code' in
-      let (values, code''') = parseList code'' in
-      (value : values, code''')
+    "" -> return ([], code')
+    _ | ")" `isPrefixOf` code' -> return ([], code')
+    _ -> do
+      (value, code'') <- parseValue code'
+      (values, code''') <- parseList code''
+      return (value : values, code''')
 
-parse :: String -> [Value]
-parse code =
-  let (exprs, code') = parseList code in
-  if null code' then exprs else error $ "parse error: excessive code: " ++ code'
+parse :: String -> IO [Value]
+parse code = do
+  (exprs, code') <- parseList code
+  if null code' then return exprs else error $ "parse error: excessive code: " ++ code'

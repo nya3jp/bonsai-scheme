@@ -40,10 +40,13 @@ formLet env (bindings:body) = do
   initLetEnv letEnv
   evaluateBody letEnv body
   where
-    initLetEnv letEnv = mapM_ handleBinding $ valueToList bindings
+    initLetEnv letEnv = do
+      bindings' <- valueToList bindings
+      mapM_ handleBinding bindings'
       where
-        handleBinding binding =
-          case valueToList binding of
+        handleBinding binding = do
+          binding' <- valueToList binding
+          case binding' of
             [Symbol name, expr] -> do
               value <- evaluate env expr
               var <- E.ensure letEnv name
@@ -56,10 +59,13 @@ formLetStar env (bindings:body) = do
   letEnv <- initLetEnv env
   evaluateBody letEnv body
   where
-    initLetEnv env' = foldM handleBinding env' $ valueToList bindings
+    initLetEnv env' = do
+      bindings' <- valueToList bindings
+      foldM handleBinding env' bindings'
     handleBinding env' binding = do
       env'' <- newEnv $ Just env'
-      case valueToList binding of
+      binding' <- valueToList binding
+      case binding' of
         [Symbol name, expr] -> do
           value <- evaluate env' expr
           var <- E.ensure env'' name
@@ -74,10 +80,13 @@ formLetRec env (bindings:body) = do
   initLetEnv letEnv
   evaluateBody letEnv body
   where
-    initLetEnv letEnv = mapM_ handleBinding $ valueToList bindings
+    initLetEnv letEnv = do
+      bindings' <- valueToList bindings
+      mapM_ handleBinding bindings'
       where
-        handleBinding binding =
-          case valueToList binding of
+        handleBinding binding = do
+          binding' <- valueToList binding
+          case binding' of
             [Symbol name, expr] -> do
               value <- evaluate letEnv expr
               var <- E.ensure letEnv name
@@ -91,8 +100,9 @@ formDefine env [Symbol name, expr] = do
   var <- E.ensure env name
   writeIORef var value
   return Undef
-formDefine env (decl:body) =
-  case valueToList decl of
+formDefine env (decl:body) = do
+  decl' <- valueToList decl
+  case decl' of
     (Symbol name : params) -> do
       let value = makeFunction env name params body
       var <- E.ensure env name
@@ -102,8 +112,9 @@ formDefine env (decl:body) =
 formDefine _ _ = error "define"
 
 formLambda :: E.Env -> [Value] -> IO Value
-formLambda env (decl:body) =
-  return $ makeFunction env "<lambda>" (valueToList decl) body
+formLambda env (decl:body) = do
+  decl' <- valueToList decl
+  return $ makeFunction env "<lambda>" decl' body
 formLambda _ _ = error "lambda"
 
 formIf :: E.Env -> [Value] -> IO Value
@@ -117,8 +128,9 @@ formIf _ _ = error "if"
 
 formCond :: E.Env -> [Value] -> IO Value
 formCond _ [] = return Undef
-formCond env (branch:restBranches) =
-  case valueToList branch of
+formCond env (branch:restBranches) = do
+  branch' <- valueToList branch
+  case branch' of
     (Symbol "else" : body) -> evaluateBody env body
     (testExpr : body) -> do
       testValue <- evaluate env testExpr
@@ -138,6 +150,28 @@ formSet env [Symbol name, expr] = do
     Nothing -> error $ "name not found: " ++ name
 formSet _ _ = error "set!"
 
+formSetCar :: E.Env -> [Value] -> IO Value
+formSetCar env [target, value] = do
+  target' <- evaluate env target
+  value' <- evaluate env value
+  case target' of
+    Pair car _ -> do
+      writeIORef car value'
+      return Undef
+    _ -> error "not pair"
+formSetCar _ _ = error "set-car!"
+
+formSetCdr :: E.Env -> [Value] -> IO Value
+formSetCdr env [target, value] = do
+  target' <- evaluate env target
+  value' <- evaluate env value
+  case target' of
+    Pair _ cdr -> do
+      writeIORef cdr value'
+      return Undef
+    _ -> error "not pair"
+formSetCdr _ _ = error "set-cdr!"
+
 lookupForm :: String -> Maybe (E.Env -> [Value] -> IO Value)
 lookupForm "begin" = Just formBegin
 lookupForm "quote" = Just formQuote
@@ -149,4 +183,6 @@ lookupForm "lambda" = Just formLambda
 lookupForm "if" = Just formIf
 lookupForm "cond" = Just formCond
 lookupForm "set!" = Just formSet
+lookupForm "set-car!" = Just formSetCar
+lookupForm "set-cdr!" = Just formSetCdr
 lookupForm _ = Nothing

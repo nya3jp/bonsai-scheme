@@ -16,6 +16,6 @@ readCode = do
 main :: IO ()
 main = do
   code <- readCode
-  let exprs = parse code
+  exprs <- parse code
   env <- newTopLevelEnv
   mapM_ (evaluate env) exprs

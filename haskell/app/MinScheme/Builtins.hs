@@ -12,7 +12,7 @@ valueToInt _ = error "not an integer"
 
 builtinPrint :: [Value] -> IO Value
 builtinPrint [arg] = do
-  putStrLn $ valueToString arg
+  valueToString arg >>= putStrLn
   return Undef
 builtinPrint _ = error "print"
 
@@ -68,16 +68,19 @@ builtinEqCheck [Null, Null] = Boolean True
 builtinEqCheck [_, _] = Boolean False
 builtinEqCheck _ = error "eq?"
 
-builtinCons :: [Value] -> Value
-builtinCons [car, cdr] = Pair car cdr
+builtinCons :: [Value] -> IO Value
+builtinCons [car, cdr] = do
+  car' <- newIORef car
+  cdr' <- newIORef cdr
+  return $ Pair car' cdr'
 builtinCons _ = error "cons"
 
-builtinCar :: [Value] -> Value
-builtinCar [Pair car _] = car
+builtinCar :: [Value] -> IO Value
+builtinCar [Pair car _] = readIORef car
 builtinCar _ = error "car"
 
-builtinCdr :: [Value] -> Value
-builtinCdr [Pair _ cdr] = cdr
+builtinCdr :: [Value] -> IO Value
+builtinCdr [Pair _ cdr] = readIORef cdr
 builtinCdr _ = error "cdr"
 
 installBuiltins :: Env -> IO ()
@@ -96,9 +99,9 @@ installBuiltins env = do
   installPure "*" builtinMul
   installPure "/" builtinDiv
   installPure "eq?" builtinEqCheck
-  installPure "cons" builtinCons
-  installPure "car" builtinCar
-  installPure "cdr" builtinCdr
+  installIO "cons" builtinCons
+  installIO "car" builtinCar
+  installIO "cdr" builtinCdr
   where
     installIO name func = do
       var <- ensure env name
