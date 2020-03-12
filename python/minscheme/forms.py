@@ -65,16 +65,6 @@ def _form_define(env: data.Environment, args: List[data.Value]) -> data.Value:
     return data.UNDEF
 
 
-def _form_set(env: data.Environment, args: List[data.Value]) -> data.Value:
-    assert len(args) == 2
-    target = args[0]
-    assert isinstance(target, data.Symbol)
-    name = target.name
-    value = eval.evaluate(env, args[1])
-    env.lookup(name).value = value
-    return data.UNDEF
-
-
 def _form_if(env: data.Environment, args: List[data.Value]) -> data.Value:
     assert len(args) in (2, 3)
 
@@ -132,6 +122,34 @@ def _form_letrec(env: data.Environment, args: List[data.Value]) -> data.Value:
     return _evaluate_body(let_env, args[1:])
 
 
+def _form_set(env: data.Environment, args: List[data.Value]) -> data.Value:
+    assert len(args) == 2
+    target = args[0]
+    assert isinstance(target, data.Symbol)
+    name = target.name
+    value = eval.evaluate(env, args[1])
+    env.lookup(name).value = value
+    return data.UNDEF
+
+
+def _form_set_car(env: data.Environment, args: List[data.Value]) -> data.Value:
+    assert len(args) == 2
+    pair = eval.evaluate(env, args[0])
+    assert isinstance(pair, data.Pair)
+    value = eval.evaluate(env, args[1])
+    pair.car = value
+    return data.UNDEF
+
+
+def _form_set_cdr(env: data.Environment, args: List[data.Value]) -> data.Value:
+    assert len(args) == 2
+    pair = eval.evaluate(env, args[0])
+    assert isinstance(pair, data.Pair)
+    value = eval.evaluate(env, args[1])
+    pair.cdr = value
+    return data.UNDEF
+
+
 ALL_MAP: Dict[str, Callable[[data.Environment, List[data.Value]], data.Value]] = {
     'quote': _form_quote,
     'begin': _form_begin,
@@ -143,4 +161,6 @@ ALL_MAP: Dict[str, Callable[[data.Environment, List[data.Value]], data.Value]] =
     'let*': _form_let_star,
     'letrec': _form_letrec,
     'set!': _form_set,
+    'set-car!': _form_set_car,
+    'set-cdr!': _form_set_cdr,
 }
