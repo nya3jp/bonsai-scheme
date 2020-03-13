@@ -142,6 +142,26 @@ function set(env, sym, rawValue) {
   return data.theUndef;
 }
 
+function setCar(env, rawPair, rawValue) {
+  const pair = eval.evaluate(env, rawPair);
+  const value = eval.evaluate(env, rawValue);
+  if (!pair instanceof data.Pair) {
+    throw new Error(`set-car!: not a pair`);
+  }
+  pair.car = value;
+  return data.theUndef;
+}
+
+function setCdr(env, rawPair, rawValue) {
+  const pair = eval.evaluate(env, rawPair);
+  const value = eval.evaluate(env, rawValue);
+  if (!pair instanceof data.Pair) {
+    throw new Error(`set-cdr!: not a pair`);
+  }
+  pair.cdr = value;
+  return data.theUndef;
+}
+
 const ALL = new Map();
 ALL.set('quote', quote);
 ALL.set('begin', begin);
@@ -153,6 +173,8 @@ ALL.set('let', letPlain);
 ALL.set('let*', letStar);
 ALL.set('letrec', letRec);
 ALL.set('set!', set);
+ALL.set('set-car!', setCar);
+ALL.set('set-cdr!', setCdr);
 
 Object.assign(module.exports, {
   ALL,
