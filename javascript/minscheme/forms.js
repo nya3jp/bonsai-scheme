@@ -94,6 +94,44 @@ function cond(env, ...clauseValues) {
   return data.theUndef;
 }
 
+function letCommon(name, env, rawArgs, letEnvFunc) {
+  const bindingValues = data.valueToArray(rawArgs[0]);
+  let curEnv = new data.Environment(env);
+  for (const bindingValue of bindingValues) {
+    const binding = data.valueToArray(bindingValue);
+    if (binding.length !== 2) {
+      throw new Error(`Malformed ${name}: 2-size lists expected`);
+    }
+    const sym = binding[0];
+    if (!sym instanceof data.Symbol) {
+      throw new Error(`Malformed ${name}: symbol expected`);
+    }
+    const { nextEnv, evalEnv } = letEnvFunc({ curEnv, origEnv: env });
+    const value = eval.evaluate(evalEnv, binding[1]);
+    curEnv = nextEnv;
+    curEnv.ensure(sym.name).value = value;
+  }
+  return evalBody(curEnv, rawArgs.slice(1));
+}
+
+function letPlain(env, ...rawArgs) {
+  return letCommon('let', env, rawArgs, function({ curEnv, origEnv }) {
+    return { nextEnv: curEnv, evalEnv: origEnv };
+  });
+}
+
+function letStar(env, ...rawArgs) {
+  return letCommon('let*', env, rawArgs, function({ curEnv, origEnv }) {
+    return { nextEnv: new data.Environment(curEnv), evalEnv: curEnv };
+  });
+}
+
+function letRec(env, ...rawArgs) {
+  return letCommon('letrec', env, rawArgs, function({ curEnv, origEnv }) {
+    return { nextEnv: curEnv, evalEnv: curEnv };
+  });
+}
+
 const ALL = new Map();
 ALL.set('quote', quote);
 ALL.set('begin', begin);
@@ -101,6 +139,9 @@ ALL.set('lambda', lambda);
 ALL.set('define', define);
 ALL.set('if', ifs);
 ALL.set('cond', cond);
+ALL.set('let', letPlain);
+ALL.set('let*', letStar);
+ALL.set('letrec', letRec);
 
 Object.assign(module.exports, {
   ALL,
