@@ -1,0 +1,14 @@
+{
+  "name": "minscheme",
+  "version": "0.1.0",
+  "description": "",
+  "main": "minscheme/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^13.9.1"
+  }
+}
