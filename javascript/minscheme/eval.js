@@ -2,11 +2,12 @@ const data = require('./data.js');
 const forms = require('./forms.js');
 
 function evaluate(env, expr) {
-  if (expr instanceof data.Undef || expr instanceof data.Bool || expr instanceof data.Int) {
+  if (expr instanceof data.Undef || expr instanceof data.Bool ||
+      expr instanceof data.Int) {
     return expr;
   }
   if (expr instanceof data.Symbol) {
-    return env.lookup(expr.name).value
+    return env.lookup(expr.name).value;
   }
   if (expr instanceof data.Pair) {
     const rawArgs = data.valueToArray(expr.cdr);

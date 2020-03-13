@@ -93,7 +93,7 @@ function or(...args) {
 }
 
 function not(value) {
-  return data.createBool(value.equals(data.theFalse))
+  return data.createBool(value.equals(data.theFalse));
 }
 
 function eqCheck(a, b) {

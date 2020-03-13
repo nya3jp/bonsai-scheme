@@ -26,7 +26,7 @@ function parsePartialValue(code) {
     const { values, code: restCode } = parsePartialList(code.substring(1));
     const newRestCode = skip(restCode);
     if (!newRestCode.startsWith(')')) {
-      throw new Error('unexpected end of list')
+      throw new Error('unexpected end of list');
     }
     return { value: data.arrayToValue(values), code: newRestCode.substring(1) };
   }
@@ -56,7 +56,7 @@ function parsePartialList(code) {
   for (;;) {
     code = skip(code);
     if (code === '' || code.startsWith(')')) {
-      break
+      break;
     }
     const { value, code: newCode } = parsePartialValue(code);
     values.push(value);
@@ -65,23 +65,14 @@ function parsePartialList(code) {
   return { values, code };
 }
 
-function parseValue(code) {
-  const { value, code: restCode } = parsePartialValue(code);
-  if (restCode !== '') {
-    throw new Error('excess code');
-  }
-  return value
-}
-
 function parseList(code) {
   const { values, code: restCode } = parsePartialList(code);
   if (restCode !== '') {
     throw new Error('excess parentheses');
   }
-  return values
+  return values;
 }
 
 Object.assign(module.exports, {
-  parseValue,
   parseList,
 });

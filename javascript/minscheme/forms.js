@@ -8,7 +8,7 @@ function quote(env, value) {
 function evalBody(env, body) {
   let result = data.theUndef;
   for (const expr of body) {
-    result = eval.evaluate(env, expr)
+    result = eval.evaluate(env, expr);
   }
   return result;
 }
@@ -21,7 +21,7 @@ function makeLambdaFunc(env, name, rawParamsValue, body) {
   const rawParams = data.valueToArray(rawParamsValue);
   const params = [];
   for (const rawParam of rawParams) {
-    if (!rawParam instanceof data.Symbol) {
+    if (!(rawParam instanceof data.Symbol)) {
       throw new Error('Non-symbol parameter');
     }
     params.push(rawParam.name);
@@ -29,7 +29,8 @@ function makeLambdaFunc(env, name, rawParamsValue, body) {
   return new data.Func(name, function(...args) {
     const argsEnv = new data.Environment(env);
     if (args.length !== params.length) {
-      throw new Error(`Function got ${args.length} arg(s); want ${params.length}`);
+      throw new Error(
+        `Function got ${args.length} arg(s); want ${params.length}`);
     }
     for (let i = 0; i < params.length; ++i) {
       argsEnv.ensure(params[i]).value = args[i];
@@ -39,7 +40,7 @@ function makeLambdaFunc(env, name, rawParamsValue, body) {
 }
 
 function lambda(env, rawParamsValue, ...body) {
-  return makeLambdaFunc(env, '<lambda>', rawParamsValue, body)
+  return makeLambdaFunc(env, '<lambda>', rawParamsValue, body);
 }
 
 function define(env, ...rawArgs) {
@@ -55,11 +56,11 @@ function define(env, ...rawArgs) {
     env.ensure(target.name).value = value;
     return data.theUndef;
   }
-  if (!target instanceof data.Pair) {
+  if (!(target instanceof data.Pair)) {
     throw new Error('Malformed define: symbol or list required');
   }
   const sym = target.car;
-  if (!sym instanceof data.Symbol) {
+  if (!(sym instanceof data.Symbol)) {
     throw new Error('Malformed define: non-symbol name');
   }
   const name = sym.name;
@@ -103,7 +104,7 @@ function letCommon(name, env, rawArgs, letEnvFunc) {
       throw new Error(`Malformed ${name}: 2-size lists expected`);
     }
     const sym = binding[0];
-    if (!sym instanceof data.Symbol) {
+    if (!(sym instanceof data.Symbol)) {
       throw new Error(`Malformed ${name}: symbol expected`);
     }
     const { nextEnv, evalEnv } = letEnvFunc({ curEnv, origEnv: env });
@@ -133,11 +134,11 @@ function letRec(env, ...rawArgs) {
 }
 
 function set(env, sym, rawValue) {
-  if (!sym instanceof data.Symbol) {
+  if (!(sym instanceof data.Symbol)) {
     throw new Error('Malformed set!: not a symbol');
   }
   const value = eval.evaluate(env, rawValue);
-  const v = env.lookup(sym.name)
+  const v = env.lookup(sym.name);
   v.value = value;
   return data.theUndef;
 }
@@ -145,8 +146,8 @@ function set(env, sym, rawValue) {
 function setCar(env, rawPair, rawValue) {
   const pair = eval.evaluate(env, rawPair);
   const value = eval.evaluate(env, rawValue);
-  if (!pair instanceof data.Pair) {
-    throw new Error(`set-car!: not a pair`);
+  if (!(pair instanceof data.Pair)) {
+    throw new Error('set-car!: not a pair');
   }
   pair.car = value;
   return data.theUndef;
@@ -155,8 +156,8 @@ function setCar(env, rawPair, rawValue) {
 function setCdr(env, rawPair, rawValue) {
   const pair = eval.evaluate(env, rawPair);
   const value = eval.evaluate(env, rawValue);
-  if (!pair instanceof data.Pair) {
-    throw new Error(`set-cdr!: not a pair`);
+  if (!(pair instanceof data.Pair)) {
+    throw new Error('set-cdr!: not a pair');
   }
   pair.cdr = value;
   return data.theUndef;
