@@ -191,7 +191,7 @@ export class Environment {
       v = new Variable(theUndef);
       this.vars.set(name, v);
     }
-    return v
+    return v;
   }
 
   lookup(name: string): Variable {

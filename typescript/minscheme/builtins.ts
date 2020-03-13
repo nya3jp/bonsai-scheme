@@ -103,7 +103,7 @@ function or(...args: Value[]): Bool {
 }
 
 function not(value: Value): Bool {
-  return createBool(value.equals(theFalse))
+  return createBool(value.equals(theFalse));
 }
 
 function eqCheck(a: Value, b: Value): Bool {

@@ -4,11 +4,16 @@
   "description": "",
   "main": "minscheme/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint --ext .ts minscheme"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^13.9.1"
+    "@types/node": "^13.9.1",
+    "@typescript-eslint/eslint-plugin": "^2.23.0",
+    "@typescript-eslint/parser": "^2.23.0",
+    "eslint": "^6.8.0",
+    "typescript": "^3.8.3"
   }
 }

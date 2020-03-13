@@ -1,4 +1,4 @@
-import {arrayToValue, Int, Sym, theFalse, theTrue, Value} from "./data";
+import {arrayToValue, Int, Sym, theFalse, theTrue, Value} from './data';
 
 const SKIP_RE = /^(\s+|;.*)+/;
 const TOKEN_RE = /^[^\s);]+/;
@@ -16,7 +16,7 @@ function createQuote(value: Value): Value {
   return arrayToValue([new Sym('quote'), value]);
 }
 
-function parsePartialValue(code: string): { value: Value, code: string } {
+function parsePartialValue(code: string): { value: Value; code: string } {
   if (code.startsWith('\'')) {
     const { value, code: restCode } = parsePartialValue(code.substring(1));
     return { value: createQuote(value), code: restCode };
@@ -26,7 +26,7 @@ function parsePartialValue(code: string): { value: Value, code: string } {
     const { values, code: restCode } = parsePartialList(code.substring(1));
     const newRestCode = skip(restCode);
     if (!newRestCode.startsWith(')')) {
-      throw new Error('unexpected end of list')
+      throw new Error('unexpected end of list');
     }
     return { value: arrayToValue(values), code: newRestCode.substring(1) };
   }
@@ -51,12 +51,12 @@ function parsePartialValue(code: string): { value: Value, code: string } {
   return { value, code: newCode };
 }
 
-function parsePartialList(code: string): { values: Value[], code: string } {
+function parsePartialList(code: string): { values: Value[]; code: string } {
   const values = [];
   for (;;) {
     code = skip(code);
     if (code === '' || code.startsWith(')')) {
-      break
+      break;
     }
     const { value, code: newCode } = parsePartialValue(code);
     values.push(value);

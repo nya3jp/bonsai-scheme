@@ -1,12 +1,11 @@
-import {parseList} from "./parser";
-import {createTopLevelEnv} from "./stdenv";
-import {evaluate} from "./eval";
+import {parseList} from './parser';
+import {createTopLevelEnv} from './stdenv';
+import {evaluate} from './eval';
+import fs = require('fs');
+import process = require('process');
+import util = require('util');
 
-const fs = require('fs');
-const process = require('process');
-const util = require('util');
-
-async function batchMain(path: string) {
+async function batchMain(path: string): Promise<void> {
   const code = await util.promisify(fs.readFile)(path, 'utf8');
   const exprs = parseList(code);
   const env = createTopLevelEnv();
@@ -15,11 +14,11 @@ async function batchMain(path: string) {
   }
 }
 
-async function interactiveMain() {
+async function interactiveMain(): Promise<void> {
   throw new Error('not implemented');
 }
 
-async function mainImpl() {
+async function mainImpl(): Promise<void> {
   const argv = process.argv;
   if (argv.length === 2) {
     return await interactiveMain();
@@ -30,7 +29,7 @@ async function mainImpl() {
   throw new Error('Wrong number of arguments');
 }
 
-function main() {
+function main(): void {
   mainImpl().catch((err) => {
     console.error(err);
     process.exit(1);

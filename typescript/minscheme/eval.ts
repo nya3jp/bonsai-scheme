@@ -7,15 +7,15 @@ import {
   Undef,
   Value,
   valueToArray
-} from "./data";
-import {allForms} from "./forms";
+} from './data';
+import {allForms} from './forms';
 
 export function evaluate(env: Environment, expr: Value): Value {
   if (expr instanceof Undef || expr instanceof Bool || expr instanceof Int) {
     return expr;
   }
   if (expr instanceof Sym) {
-    return env.lookup(expr.name).value
+    return env.lookup(expr.name).value;
   }
   if (expr instanceof Pair) {
     const rawArgs = valueToArray(expr.cdr);

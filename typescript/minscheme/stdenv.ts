@@ -1,5 +1,5 @@
-import {Environment} from "./data";
-import {allBuiltins} from "./builtins";
+import {Environment} from './data';
+import {allBuiltins} from './builtins';
 
 export function createTopLevelEnv(): Environment {
   const env = new Environment();
