@@ -1,8 +1,11 @@
+use std::cell::Ref;
+use std::cell::RefCell;
+use std::cell::RefMut;
 use std::fmt;
 use std::rc::Rc;
 
 pub trait Function {
-    fn apply(&self, args: &[Rc<Value>]) -> Result<Rc<Value>, String>;
+    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef, String>;
 }
 
 pub enum Value {
@@ -11,70 +14,8 @@ pub enum Value {
     Integer(i32),
     Symbol(String),
     Null,
-    Pair(Rc<Value>, Rc<Value>),
-    Function(String, Box<Function>),
-}
-
-impl Value {
-    pub fn from_native_list(values: &[Rc<Value>]) -> Rc<Value> {
-        let mut list_value = Rc::new(Value::Null);
-        for value in values.iter().rev() {
-            list_value = Rc::new(Value::Pair(value.clone(), list_value));
-        }
-        list_value
-    }
-
-    pub fn to_native_list(&self) -> Result<Vec<Rc<Value>>, String> {
-        let mut values = vec![];
-        let mut current: &Value = self;
-        loop {
-            match current {
-                &Value::Null => break,
-                &Value::Pair(ref car, ref cdr) => {
-                    values.push(car.clone());
-                    current = &**cdr;
-                },
-                _ => return Err("Not a list".to_string()),
-            };
-        }
-        Ok(values)
-    }
-
-    pub fn bool(&self) -> bool {
-        if let &Value::Boolean(false) = self { false } else { true }
-    }
-
-    pub fn as_integer(&self) -> Result<i32, String> {
-        if let &Value::Integer(i) = self {
-            Ok(i)
-        } else {
-            Err("Not an integer".to_string())
-        }
-    }
-
-    pub fn as_symbol(&self) -> Result<String, String> {
-        if let &Value::Symbol(ref name) = self {
-            Ok(name.clone())
-        } else {
-            Err("Not a symbol".to_string())
-        }
-    }
-
-    pub fn as_pair(&self) -> Result<(Rc<Value>, Rc<Value>), String> {
-        if let &Value::Pair(ref car, ref cdr) = self {
-            Ok((car.clone(), cdr.clone()))
-        } else {
-            Err("Not a pair".to_string())
-        }
-    }
-
-    pub fn as_function(&self) -> Result<(String, &Function), String> {
-        if let &Value::Function(ref name, ref func) = self {
-            Ok((name.clone(), &**func))
-        } else {
-            Err("Not a function".to_string())
-        }
-    }
+    Pair(ValueRef, ValueRef),
+    Function(String, Rc<Function>),
 }
 
 impl PartialEq for Value {
@@ -112,5 +53,119 @@ impl fmt::Display for Value {
 impl fmt::Debug for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         (self as &fmt::Display).fmt(f)
+    }
+}
+
+pub struct ValueRef {
+    pub r: Rc<RefCell<Value>>,
+}
+
+impl Clone for ValueRef {
+    fn clone(&self) -> Self {
+        ValueRef{r: self.r.clone()}
+    }
+}
+
+impl ValueRef {
+    pub fn new(value: Value) -> Self {
+        ValueRef{r: Rc::new(RefCell::new(value))}
+    }
+
+    pub fn borrow(&self) -> Ref<Value> {
+        self.r.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<Value> {
+        self.r.borrow_mut()
+    }
+
+    pub fn from_native_list(values: &[ValueRef]) -> ValueRef {
+        let mut list_value = ValueRef::new(Value::Null);
+        for value in values.iter().rev() {
+            list_value = ValueRef::new(Value::Pair(value.clone(), list_value));
+        }
+        list_value
+    }
+
+    pub fn to_native_list(&self) -> Result<Vec<ValueRef>, String> {
+        let mut values = vec![];
+        let mut current = self.clone();
+        loop {
+            current = {
+                let r = current.borrow();
+                match &*r {
+                    &Value::Null => break,
+                    &Value::Pair(ref car, ref cdr) => {
+                        values.push(car.clone());
+                        cdr.clone()
+                    },
+                    _ => return Err("Not a list".to_string()),
+                }
+            };
+        }
+        Ok(values)
+    }
+
+    pub fn bool(&self) -> bool {
+        let r = self.borrow();
+        if let &Value::Boolean(false) = &*r { false } else { true }
+    }
+
+    pub fn as_integer(&self) -> Result<i32, String> {
+        let r = self.borrow();
+        if let &Value::Integer(i) = &*r {
+            Ok(i)
+        } else {
+            Err("Not an integer".to_string())
+        }
+    }
+
+    pub fn as_symbol(&self) -> Result<String, String> {
+        let r = self.borrow();
+        if let &Value::Symbol(ref name) = &*r {
+            Ok(name.clone())
+        } else {
+            Err("Not a symbol".to_string())
+        }
+    }
+
+    pub fn as_pair(&self) -> Result<(ValueRef, ValueRef), String> {
+        let r = self.borrow();
+        if let &Value::Pair(ref car, ref cdr) = &*r {
+            Ok((car.clone(), cdr.clone()))
+        } else {
+            Err("Not a pair".to_string())
+        }
+    }
+
+    pub fn as_function(&self) -> Result<(String, Rc<Function>), String> {
+        let r = self.borrow();
+        if let &Value::Function(ref name, ref func) = &*r {
+            Ok((name.clone(), func.clone()))
+        } else {
+            Err("Not a function".to_string())
+        }
+    }
+}
+
+impl PartialEq for ValueRef {
+    fn eq(&self, other: &Self) -> bool {
+        let rself = self.r.borrow();
+        let rother = other.r.borrow();
+        rself.eq(&*rother)
+    }
+}
+
+impl fmt::Display for ValueRef {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let r = self.r.borrow();
+        r.fmt(f)
+    }
+}
+
+impl fmt::Debug for ValueRef {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let r = self.r.borrow();
+        r.fmt(f)
     }
 }

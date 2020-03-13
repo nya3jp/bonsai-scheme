@@ -4,15 +4,22 @@ use std::rc::Rc;
 
 use builtins;
 use data::Value;
+use data::ValueRef;
 use forms;
 
 pub struct Variable {
-    pub value: Rc<Value>,
+    pub value: ValueRef,
 }
 
 impl Variable {
     pub fn new() -> Variable {
-        Variable{value: Rc::new(Value::Undef)}
+        Variable{value: ValueRef::new(Value::Undef)}
+    }
+}
+
+impl Clone for Variable {
+    fn clone(&self) -> Self {
+        Variable{value: self.value.clone()}
     }
 }
 
@@ -40,32 +47,41 @@ impl Env {
         env_ref.vars.get(name).unwrap().clone()
     }
 
-    pub fn lookup(env: &Rc<RefCell<Env>>, name: &str) -> Option<Rc<RefCell<Variable>>> {
+    pub fn lookup(env: &Rc<RefCell<Env>>, name: &str) -> Option<ValueRef> {
+        Env::lookup_ref(env, name).map(|r| {
+            let rr = r.borrow();
+            rr.value.clone()
+        })
+    }
+
+    pub fn lookup_ref(env: &Rc<RefCell<Env>>, name: &str) -> Option<Rc<RefCell<Variable>>> {
         if env.borrow().vars.contains_key(name) {
             Some(env.borrow().vars.get(name).unwrap().clone())
         } else if let Some(ref parent) = env.borrow().parent {
-            Env::lookup(parent, name)
+            Env::lookup_ref(parent, name)
         } else {
             None
         }
     }
 
-    pub fn evaluate(env: &Rc<RefCell<Env>>, expr: &Rc<Value>) -> Result<Rc<Value>, String> {
-        match &**expr {
+    pub fn evaluate(env: &Rc<RefCell<Env>>, expr: &ValueRef) -> Result<ValueRef, String> {
+        let r = expr.borrow();
+        match &*r {
             // FIXME: Can we avoid Rc::clone() here? I got the following error:
             // error[E0505]: cannot move out of `expr` because it is borrowed
             //     &Value::Null => Ok(expr),
             //                        ^^^^ move out of `expr` occurs here
-            &Value::Null => Ok(Rc::clone(expr)),
-            &Value::Boolean(_) => Ok(Rc::clone(&expr)),
-            &Value::Integer(_) => Ok(Rc::clone(&expr)),
-            &Value::Symbol(ref name) =>
-                Env::lookup(env, name).map(|var| var.borrow().value.clone())
-                    .ok_or(format!("Not found: {}", name)),
+            &Value::Null => Ok(expr.clone()),
+            &Value::Boolean(_) => Ok(expr.clone()),
+            &Value::Integer(_) => Ok(expr.clone()),
+            &Value::Symbol(ref name) => Env::lookup(env, name).ok_or(format!("Not found: {}", name)),
             &Value::Pair(ref car, ref cdr) => {
-                if let &Value::Symbol(ref name) = &**car {
-                    if let Some(form) = forms::lookup(name) {
-                        return form.apply(env, cdr.to_native_list()?.as_slice());
+                {
+                    let rr = car.borrow();
+                    if let &Value::Symbol(ref name) = &*rr {
+                        if let Some(form) = forms::lookup(name) {
+                            return form.apply(env, cdr.to_native_list()?.as_slice());
+                        }
                     }
                 }
                 let value = Env::evaluate(env, car)?;

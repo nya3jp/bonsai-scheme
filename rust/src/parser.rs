@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
 use data::Value;
+use data::ValueRef;
 use regex::Regex;
 
-fn make_quote(value: Rc<Value>) -> Rc<Value> {
-    Value::from_native_list(
-        &[Rc::new(Value::Symbol("quote".to_string())), value])
+fn make_quote(value: ValueRef) -> ValueRef {
+    ValueRef::from_native_list(
+        &[ValueRef::new(Value::Symbol("quote".to_string())), value])
 }
 
 fn parse_skip(code: &str) -> &str {
@@ -19,7 +20,7 @@ fn parse_skip(code: &str) -> &str {
     }
 }
 
-fn parse_value(code: &str) -> Result<(Rc<Value>, &str), String> {
+fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
     lazy_static! {
         static ref TOKEN_RE: Regex = Regex::new(r"^[^\s);]+").unwrap();
         static ref NUM_RE: Regex = Regex::new(r"^-?[0-9]+$").unwrap();
@@ -36,7 +37,7 @@ fn parse_value(code: &str) -> Result<(Rc<Value>, &str), String> {
         if !next_code.starts_with(")") {
             return Err("Parse error".to_string());
         }
-        return Ok((Value::from_native_list(values.as_slice()), &next_code[1..]));
+        return Ok((ValueRef::from_native_list(values.as_slice()), &next_code[1..]));
     }
 
     let m = TOKEN_RE.find(code).ok_or("Malformed token".to_string())?;
@@ -52,10 +53,10 @@ fn parse_value(code: &str) -> Result<(Rc<Value>, &str), String> {
         Value::Symbol(token.to_string())
     };
 
-    Ok((Rc::new(value), next_code))
+    Ok((ValueRef::new(value), next_code))
 }
 
-fn parse_list(code: &str) -> Result<(Vec<Rc<Value>>, &str), String> {
+fn parse_list(code: &str) -> Result<(Vec<ValueRef>, &str), String> {
     let mut values = Vec::new();
     let mut code = code;
     loop {
@@ -70,7 +71,7 @@ fn parse_list(code: &str) -> Result<(Vec<Rc<Value>>, &str), String> {
     Ok((values, code))
 }
 
-pub fn parse(code: &str) -> Result<Vec<Rc<Value>>, String> {
+pub fn parse(code: &str) -> Result<Vec<ValueRef>, String> {
     let (values, excess_code) = parse_list(code)?;
     if excess_code.is_empty() {
         Ok(values)
