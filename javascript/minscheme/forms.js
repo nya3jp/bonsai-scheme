@@ -132,6 +132,16 @@ function letRec(env, ...rawArgs) {
   });
 }
 
+function set(env, sym, rawValue) {
+  if (!sym instanceof data.Symbol) {
+    throw new Error('Malformed set!: not a symbol');
+  }
+  const value = eval.evaluate(env, rawValue);
+  const v = env.lookup(sym.name)
+  v.value = value;
+  return data.theUndef;
+}
+
 const ALL = new Map();
 ALL.set('quote', quote);
 ALL.set('begin', begin);
@@ -142,6 +152,7 @@ ALL.set('cond', cond);
 ALL.set('let', letPlain);
 ALL.set('let*', letStar);
 ALL.set('letrec', letRec);
+ALL.set('set!', set);
 
 Object.assign(module.exports, {
   ALL,
