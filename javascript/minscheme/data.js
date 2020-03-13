@@ -6,6 +6,10 @@ class Value {
   equals(other) {
     throw new Error('abstract method');
   }
+
+  bool() {
+    throw new Error('abstract method');
+  }
 }
 
 class Undef extends Value {
@@ -15,6 +19,10 @@ class Undef extends Value {
 
   equals(other) {
     return other instanceof Undef;
+  }
+
+  bool() {
+    return true;
   }
 }
 
@@ -27,6 +35,10 @@ class Null extends Value {
 
   equals(other) {
     return other instanceof Null;
+  }
+
+  bool() {
+    return true;
   }
 }
 
@@ -59,6 +71,10 @@ class Pair extends Value {
 
   equals(other) {
     return this === other;
+  }
+
+  bool() {
+    return true;
   }
 }
 
@@ -98,6 +114,10 @@ class Bool extends Value {
     }
     return this.rawValue === other.rawValue;
   }
+
+  bool() {
+    return this.rawValue;
+  }
 }
 
 const theFalse = new Bool(false);
@@ -123,6 +143,10 @@ class Int extends Value {
     }
     return this.rawValue === other.rawValue;
   }
+
+  bool() {
+    return true;
+  }
 }
 
 class Symbol extends Value {
@@ -140,6 +164,10 @@ class Symbol extends Value {
       return false;
     }
     return this.name === other.name;
+  }
+
+  bool() {
+    return true;
   }
 }
 
@@ -163,6 +191,10 @@ class Func extends Value {
 
   call(args) {
     return this.func.apply(undefined, args);
+  }
+
+  bool() {
+    return true;
   }
 }
 
