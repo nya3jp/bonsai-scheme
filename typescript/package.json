@@ -2,10 +2,10 @@
   "name": "minscheme",
   "version": "0.1.0",
   "description": "",
-  "main": "minscheme/index.js",
+  "main": "src/index.js",
   "scripts": {
     "build": "tsc",
-    "lint": "eslint --ext .ts minscheme"
+    "lint": "eslint --ext .ts src"
   },
   "author": "",
   "license": "ISC",

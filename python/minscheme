@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PYTHONPATH="$(dirname "$0")"
+export PYTHONPATH="$(dirname "$0")/src"
 
 set -ex
 
