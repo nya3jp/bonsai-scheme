@@ -4,4 +4,4 @@ cd "$(dirname "$0")"
 
 set -ex
 
-exec stack build
+exec stack install --local-bin-path "$PWD"
