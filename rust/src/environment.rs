@@ -67,10 +67,6 @@ impl Env {
     pub fn evaluate(env: &Rc<RefCell<Env>>, expr: &ValueRef) -> Result<ValueRef, String> {
         let r = expr.borrow();
         match &*r {
-            // FIXME: Can we avoid Rc::clone() here? I got the following error:
-            // error[E0505]: cannot move out of `expr` because it is borrowed
-            //     &Value::Null => Ok(expr),
-            //                        ^^^^ move out of `expr` occurs here
             &Value::Null => Ok(expr.clone()),
             &Value::Boolean(_) => Ok(expr.clone()),
             &Value::Integer(_) => Ok(expr.clone()),

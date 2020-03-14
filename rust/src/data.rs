@@ -20,17 +20,13 @@ pub enum Value {
 
 impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
-        // FIXME: Can we write this in more readable way?
-        match self {
-            &Value::Undef => if let &Value::Undef = other { true } else { false },
-            &Value::Boolean(a) => if let &Value::Boolean(b) = other { a == b } else { false },
-            &Value::Integer(a) => if let &Value::Integer(b) = other { a == b } else { false },
-            &Value::Symbol(ref a) => if let &Value::Symbol(ref b) = other { a == b } else { false },
-            // FIXME: This is wrong.
-            &Value::Pair(_, _) => false,
-            &Value::Null => if let &Value::Null = other { true } else { false },
-            // FIXME: This is wrong.
-            &Value::Function(_, _) => false,
+        match (self, other) {
+            (&Value::Undef, &Value::Undef) => true,
+            (&Value::Boolean(a), &Value::Boolean(b)) => a == b,
+            (&Value::Integer(a), &Value::Integer(b)) => a == b,
+            (&Value::Symbol(ref a), &Value::Symbol(ref b)) => a == b,
+            (&Value::Null, &Value::Null) => true,
+            _ => false,
         }
     }
 }
