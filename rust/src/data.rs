@@ -15,7 +15,7 @@ pub enum Value {
     Symbol(String),
     Null,
     Pair(ValueRef, ValueRef),
-    Function(String, Rc<Function>),
+    Function(String, Rc<dyn Function>),
 }
 
 impl PartialEq for Value {
@@ -48,7 +48,7 @@ impl fmt::Display for Value {
 
 impl fmt::Debug for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        (self as &fmt::Display).fmt(f)
+        (self as &dyn fmt::Display).fmt(f)
     }
 }
 
@@ -134,7 +134,7 @@ impl ValueRef {
         }
     }
 
-    pub fn as_function(&self) -> Result<(String, Rc<Function>), String> {
+    pub fn as_function(&self) -> Result<(String, Rc<dyn Function>), String> {
         let r = self.borrow();
         if let &Value::Function(ref name, ref func) = &*r {
             Ok((name.clone(), func.clone()))

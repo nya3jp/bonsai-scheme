@@ -5,7 +5,6 @@ use data::Function;
 use data::Value;
 use data::ValueRef;
 use environment::Env;
-use std::borrow::BorrowMut;
 
 fn evaluate_body(env: &Rc<RefCell<Env>>, body: &[ValueRef]) -> Result<ValueRef, String> {
     let mut value = ValueRef::new(Value::Undef);
@@ -75,7 +74,7 @@ impl Function for LambdaFunction {
         }
         let env = Env::new(Some(self.env.clone()));
         for (param, arg) in self.params.iter().zip(args.iter()) {
-            let mut var = Env::ensure(&env, param);
+            let var = Env::ensure(&env, param);
             (*var).borrow_mut().value = arg.clone();
         }
         evaluate_body(&env, self.body.as_slice())
@@ -214,7 +213,7 @@ fn form_set_cdr(env: &Rc<RefCell<Env>>, exprs: &[ValueRef]) -> Result<ValueRef, 
 
 // FIXME: Can we get rid of this struct and use Fn directly?
 pub struct Form {
-    func: &'static Fn(&Rc<RefCell<Env>>, &[ValueRef]) -> Result<ValueRef, String>,
+    func: &'static dyn Fn(&Rc<RefCell<Env>>, &[ValueRef]) -> Result<ValueRef, String>,
 }
 
 impl Form {

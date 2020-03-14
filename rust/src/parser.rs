@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use data::Value;
 use data::ValueRef;
 use regex::Regex;

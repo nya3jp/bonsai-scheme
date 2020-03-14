@@ -144,7 +144,7 @@ fn builtin_eq_check(args: &[ValueRef]) -> Result<ValueRef, String> {
 
 // FIXME: Can we get rid of this struct and use Fn directly?
 struct BuiltinFunction {
-    func: &'static Fn(&[ValueRef]) -> Result<ValueRef, String>,
+    func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, String>,
 }
 
 impl Function for BuiltinFunction {
@@ -153,9 +153,9 @@ impl Function for BuiltinFunction {
     }
 }
 
-fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static Fn(&[ValueRef]) -> Result<ValueRef, String>) {
+fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, String>) {
     let name_string = name.to_string();
-    let mut var = Env::ensure(env, &name_string);
+    let var = Env::ensure(env, &name_string);
     var.borrow_mut().value = ValueRef::new(Value::Function(name_string, Rc::new(BuiltinFunction{func: func})));
 }
 
