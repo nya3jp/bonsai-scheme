@@ -1,0 +1,48 @@
+language: generic
+jobs:
+  include:
+    - name: Go
+      language: go
+      go:
+        - "1.x"
+      script:
+        - go/run_tests.sh
+    - name: Python
+      language: python
+      python:
+        - "3.8"
+      script:
+        - python/run_tests.sh
+    - name: Rust
+      language: rust
+      rust:
+        - stable
+      script:
+        - rust/run_tests.sh
+    - name: JavaScript
+      language: node_js
+      node_js:
+        - node
+      script:
+        - javascript/run_tests.sh
+    - name: TypeScript
+      language: node_js
+      node_js:
+        - node
+      script:
+        - typescript/run_tests.sh
+    - name: Haskell
+      language: generic
+      addons:
+        apt:
+          packages:
+            - libgmp-dev
+      cache:
+        directories:
+          - $HOME/.stack
+      before_install:
+        - mkdir -p ~/.local/bin
+        - export PATH=$HOME/.local/bin:$PATH
+        - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+      script:
+        - haskell/run_tests.sh
