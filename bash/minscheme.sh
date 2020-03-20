@@ -3,12 +3,12 @@
 IFS=$'\n'
 
 declare -a g_cars g_cdrs
+declare -r DEBUG=false
 
 die() {
     echo "$@" >&2
     exit 1
 }
-
 
 make_pair() {
     local id=${#g_cars[@]}
@@ -64,8 +64,12 @@ stringify() {
     T) g_return="#t";;
     F) g_return="#f";;
     '$') g_return="()";;
-    "#"*|"&"*|"@"*)
+    "#"*|"&"*)
         unwrap_generic "$value"
+        ;;
+    "@"*)
+        unwrap_generic "$value"
+        g_return="${g_return%% *}"
         ;;
     "%"*)
         unwrap_pair "$value"
@@ -76,60 +80,10 @@ stringify() {
         g_return="(${tmp} . ${g_return})"
         ;;
     *)
-        die "corrupted value: $value"
+        die "stringify: corrupted value: $value"
         ;;
     esac
 }
-
-# split_value() {
-#     local value="$1"
-#     local mark
-#     case "$value" in
-#     _*|T*|F*|'$'*)
-#         g_return=("${value:0:1}" "${value:1}")
-#         ;;
-#     "#"*|"&"*)
-#         mark="${value:0:1}"
-#         value="${value:2}"
-#         if [[ ! "$value" =~ ^[^]]*] ]]; then
-#             die "corrupted value"
-#         fi
-#         g_return=("${mark}[${BASH_REMATCH%]}]" "${value#$BASH_REMATCH}")
-#         ;;
-#     "("*)
-#         value="${value#(}"
-#         split_value "$value"
-#         value="${g_return[0]}"
-#         split_value "${g_return[1]#.}"
-#         g_return=("(${value}.${g_return[0]})" "${g_return[1]#)}")
-#         ;;
-#     *)
-#         die "corrupted value: $value"
-#         ;;
-#     esac
-# }
-
-# car() {
-#     local value="$1"
-#     if [[ "$value" != '('*')' ]]; then
-#         die "not a pair"
-#     fi
-#     value="${value#(}"
-#     value="${value%)}"
-#     split_value "$value"
-#     g_return="${g_return[0]}"
-# }
-
-# cdr() {
-#     local value="$1"
-#     if [[ "$value" != '('*')' ]]; then
-#         die "not a pair"
-#     fi
-#     value="${value#(}"
-#     value="${value%)}"
-#     split_value "$value"
-#     g_return="${g_return[1]#.}"
-# }
 
 skip() {
     local c
@@ -247,30 +201,64 @@ new_env() {
     local parent=$1
     local env="env${env_next_id}"
     : $(( env_next_id++ ))
-    eval "declare -r ${env}_parent='$parent'"
-    eval "declare -a ${env}_vars=()"
+    eval "${env}_parent='$parent'"
+    eval "${env}_vars=()"
     g_return="$env"
+}
+
+put_env() {
+    local env=$1
+    local key=$2
+    local value=$3
+    local vars_size
+    eval "vars_size=\${#${env}_vars[@]}"
+    local tmp i akey avalue
+    for (( i = 0; i < vars_size; i++ )); do
+        tmp="${env}_vars[${i}]"
+        IFS=' ' read -r akey avalue <<< "${!tmp}"
+        if [[ "$akey" == "$key" ]]; then
+            if $DEBUG; then
+                stringify "$value"
+                echo "DEBUG: put_env: ${env}: $key = $g_return (overwrite)" >&2
+            fi
+            eval "${env}_vars[${i}]=\"\$key \$value\""
+            return
+        fi
+    done
+    if $DEBUG; then
+        stringify "$value"
+        echo "DEBUG: put_env: ${env}: $key = $g_return (new)" >&2
+    fi
+    eval "${env}_vars+=(\"\$key \$value\")"
 }
 
 set_env() {
     local env=$1
     local key=$2
     local value=$3
-    local tmp="#${env}_vars[@]"
-    local env_size="${!tmp}"
-    local i akey avalue
-    for (( i = 0; i < env_size; i++ )); do
-        tmp="${env}_vars[${i}]"
-        IFS=' ' read -r akey avalue <<< "${!tmp}"
-        if [[ "$akey" == "$key" ]]; then
-            eval "${env}_vars[${i}]=\"\$key \$value\""
-            return
-        fi
+    local vars_size
+    local tmp i akey avalue
+    while [[ -n "$env" ]]; do
+        eval "vars_size=\${#${env}_vars[@]}"
+        for (( i = 0; i < vars_size; i++ )); do
+            tmp="${env}_vars[${i}]"
+            IFS=' ' read -r akey avalue <<< "${!tmp}"
+            if [[ "$akey" == "$key" ]]; then
+                if $DEBUG; then
+                    stringify "$value"
+                    echo "DEBUG: set_env: ${env}: $key = $g_return (overwrite)" >&2
+                fi
+                eval "${env}_vars[${i}]=\"\$key \$value\""
+                return
+            fi
+        done
+        tmp="${env}_parent"
+        env="${!tmp}"
     done
-    eval "${env}_vars+=(\"\$key \$value\")"
+    die "set_env: name not found: $key"
 }
 
-lookup_env() {
+get_env() {
     local env=$1
     local key=$2
     local tmp entry akey avalue
@@ -286,21 +274,36 @@ lookup_env() {
         tmp="${env}_parent"
         env="${!tmp}"
     done
-    die "name not found: $key"
+    die "get_env: name not found: $key"
 }
 
 run_lambda() {
-    die "run_lambda: $*"
+    local env=$1
+    local raw_names=$2
+    local body=$3
+    shift 3
+    local args=("$@")
+
+    value_to_array "$raw_names"
+    local names=("${g_return[@]}")
+
+    new_env "$env"
+    env="$g_return"
+
+    #echo "DEBUG: run_lambda: env=${env}" >&2
+
+    local i
+    for (( i = 0; i < ${#names[@]}; i++ )); do
+        unwrap_symbol "${names[$i]}"
+        put_env "$env" "$g_return" "${args[$i]}"
+    done
+
+    value_to_array "$body"
+    evaluate_list "$env" "${g_return[@]}"
 }
 
 form_begin() {
-    local env=$1
-    shift
-    g_return="_"
-    local expr
-    for expr in "$@"; do
-        evaluate "$env" "$expr"
-    done
+    evaluate_list "$@"
 }
 
 form_quote() {
@@ -309,12 +312,190 @@ form_quote() {
 
 form_lambda() {
     local env=$1
-    local raw_params=$2
+    local raw_names=$2
     shift 2
     array_to_value "$@"
     local body="$g_return"
-    local f="run_lambda ${env@Q} ${raw_params@Q} ${body@Q}"
+    g_return="@[<lambda> run_lambda $(printf %q "$env") $(printf %q "$raw_names") $(printf %q "$body")]"
+}
 
+form_define() {
+    local env=$1
+    local raw_proto=$2
+    shift 2
+
+    if [[ "$raw_proto" == "&"* ]]; then
+        unwrap_symbol "$raw_proto"
+        local name="$g_return"
+        evaluate_list "$env" "$@"
+        put_env "$env" "$name" "$g_return"
+        g_return="_"
+        return
+    fi
+
+    unwrap_pair "$raw_proto"
+    unwrap_symbol "${g_cars[$g_return]}"
+    local name="$g_return"
+    unwrap_pair "$raw_proto"
+    local raw_names="${g_cdrs[$g_return]}"
+    array_to_value "$@"
+    local body="$g_return"
+    put_env "$env" "$name" "@[<func:${name}> run_lambda $(printf %q "$env") $(printf %q "$raw_names") $(printf %q "$body")]"
+    g_return="_"
+}
+
+form_let() {
+    local env=$1
+    value_to_array "$2"
+    local bindings=("${g_return[@]}")
+    shift 2
+
+    new_env "$env"
+    local let_env="$g_return"
+
+    local binding name value
+    for binding in "${bindings[@]}"; do
+        value_to_array "$binding"
+        name="${g_return[0]}"
+        value="${g_return[1]}"
+        unwrap_symbol "$name"
+        name="$g_return"
+        evaluate_expr "$env" "$value"
+        value="$g_return"
+        put_env "$let_env" "$name" "$value"
+    done
+
+    evaluate_list "$let_env" "$@"
+}
+
+form_let_star() {
+    local env=$1
+    value_to_array "$2"
+    local bindings=("${g_return[@]}")
+    shift 2
+
+    local let_env="$env"
+
+    local binding name value
+    for binding in "${bindings[@]}"; do
+        value_to_array "$binding"
+        name="${g_return[0]}"
+        value="${g_return[1]}"
+        unwrap_symbol "$name"
+        name="$g_return"
+        evaluate_expr "$let_env" "$value"
+        value="$g_return"
+        new_env "$let_env"
+        let_env="$g_return"
+        put_env "$let_env" "$name" "$value"
+    done
+
+    new_env "$let_env"
+    let_env="$g_return"
+
+    evaluate_list "$let_env" "$@"
+}
+
+form_letrec() {
+    local env=$1
+    value_to_array "$2"
+    local bindings=("${g_return[@]}")
+    shift 2
+
+    new_env "$env"
+    local let_env="$g_return"
+
+    local binding name value
+    for binding in "${bindings[@]}"; do
+        value_to_array "$binding"
+        name="${g_return[0]}"
+        value="${g_return[1]}"
+        unwrap_symbol "$name"
+        name="$g_return"
+        evaluate_expr "$let_env" "$value"
+        value="$g_return"
+        put_env "$let_env" "$name" "$value"
+    done
+
+    evaluate_list "$let_env" "$@"
+}
+
+form_if() {
+    local env=$1
+    local cond=$2
+    local then=$3
+    local else=$4
+
+    evaluate_expr "$env" "$cond"
+    if [[ "$g_return" == F ]]; then
+        if [[ -n "$else" ]]; then
+            evaluate_expr "$env" "$else"
+        else
+            g_return="_"
+        fi
+        return
+    fi
+    evaluate_expr "$env" "$then"
+}
+
+form_cond() {
+    local env=$1
+    shift 1
+
+    local branch cond then
+    for branch in "$@"; do
+        value_to_array "$branch"
+        cond="${g_return[0]}"
+        then="${g_return[1]}"
+        if [[ "$cond" == "&[else]" ]]; then
+            evaluate_expr "$env" "$then"
+            return
+        fi
+        evaluate_expr "$env" "$cond"
+        if [[ "$g_return" != "F" ]]; then
+            evaluate_expr "$env" "$then"
+            return
+        fi
+    done
+    g_return="_"
+}
+
+form_set() {
+    local env=$1
+    local name=$2
+    local expr=$3
+
+    unwrap_symbol "$name"
+    name="$g_return"
+    evaluate_expr "$env" "$expr"
+    set_env "$env" "$name" "$g_return"
+    g_return="_"
+}
+
+form_set_car() {
+    local env=$1
+    local target=$2
+    local expr=$3
+
+    evaluate_expr "$env" "$target"
+    unwrap_pair "$g_return"
+    local id="$g_return"
+    evaluate_expr "$env" "$expr"
+    g_cars[$id]="$g_return"
+    g_return="_"
+}
+
+form_set_cdr() {
+    local env=$1
+    local target=$2
+    local expr=$3
+
+    evaluate_expr "$env" "$target"
+    unwrap_pair "$g_return"
+    local id="$g_return"
+    evaluate_expr "$env" "$expr"
+    g_cdrs[$id]="$g_return"
+    g_return="_"
 }
 
 evaluate_form() {
@@ -325,55 +506,86 @@ evaluate_form() {
     case "$name" in
     begin) form_begin "$env" "${args[@]}";;
     quote) form_quote "$env" "${args[@]}";;
+    lambda) form_lambda "$env" "${args[@]}";;
+    define) form_define "$env" "${args[@]}";;
+    let) form_let "$env" "${args[@]}";;
+    "let*") form_let_star "$env" "${args[@]}";;
+    letrec) form_letrec "$env" "${args[@]}";;
+    if) form_if "$env" "${args[@]}";;
+    cond) form_cond "$env" "${args[@]}";;
+    "set!") form_set "$env" "${args[@]}";;
+    "set-car!") form_set_car "$env" "${args[@]}";;
+    "set-cdr!") form_set_cdr "$env" "${args[@]}";;
     *) g_return="";;
     esac
 }
 
-evaluate() {
+evaluate_expr() {
     local env=$1
     local expr=$2
-    local top args i
-    stringify "$expr"
-    echo "DEBUG: eval: $g_return" >&2
+    if $DEBUG; then
+        stringify "$expr"
+        local expr_str="$g_return"
+        echo "DEBUG: eval start: ${expr_str} on ${env}" >&2
+    fi
     case "$expr" in
     _|T|F|"#"*) g_return="$expr";;
     "&"*)
         unwrap_symbol "$expr"
-        lookup_env "$env" "$g_return"
+        get_env "$env" "$g_return"
         ;;
     "%"*)
         unwrap_pair "$expr"
         value_to_array "${g_cdrs[$g_return]}"
-        args=("${g_return[@]}")
+        local args=("${g_return[@]}")
         unwrap_pair "$expr"
-        top="${g_cars[$g_return]}"
+        local top="${g_cars[$g_return]}"
         if [[ "$top" == "&"* ]]; then
             unwrap_symbol "$top"
-            # echo "DEBUG: form: $g_return ${args[@]}" >&2
             evaluate_form "$env" "$g_return" "${args[@]}"
             if [[ -n "$g_return" ]]; then
+                if $DEBUG; then
+                    local raw_return="$g_return"
+                    stringify "$g_return"
+                    echo "DEBUG: end eval: $expr_str => $g_return" >&2
+                    g_return="$raw_return"
+                fi
                 return
             fi
         fi
-        evaluate "$env" "$top"
+        evaluate_expr "$env" "$top"
         unwrap_func "$g_return"
-        top="${g_return#* }"
+        local call="${g_return#* }"
+        local i
         for (( i = 0; i < ${#args[@]}; i++ )); do
-            evaluate "$env" "${args[$i]}"
-            args[$i]="$g_return"
+            evaluate_expr "$env" "${args[$i]}"
+            call="$call $(printf %q "$g_return")"
         done
-        IFS=' '
-        local call="$top ${args[*]}"
-        IFS=$'\n'
-        echo "DEBUG: start func: $call" >&2
-        $top "${args[@]}"
-        echo "DEBUG: end func: $call = $g_return" >&2
+        #echo "DEBUG: start func: $call" >&2
+        eval "$call"
+        #echo "DEBUG: end func: $call = $g_return" >&2
         ;;
     *)
         stringify "$expr"
         die "not evaluatable: $g_return"
         ;;
     esac
+    if $DEBUG; then
+        local raw_return="$g_return"
+        stringify "$g_return"
+        echo "DEBUG: eval end: ${expr_str} => ${g_return} on ${env}" >&2
+        g_return="$raw_return"
+    fi
+}
+
+evaluate_list() {
+    local env=$1
+    shift
+    g_return="_"
+    local expr
+    for expr in "$@"; do
+        evaluate_expr "$env" "$expr"
+    done
 }
 
 builtin_print() {
@@ -551,7 +763,7 @@ register_builtin() {
     local env="$1"
     local name="$2"
     local func="$3"
-    set_env "$env" "$name" "@[$name $func]"
+    put_env "$env" "$name" "@[<builtin:$name> $func]"
 }
 
 new_top_level_env() {
@@ -588,13 +800,7 @@ main() {
     local env expr
     new_top_level_env
     env="$g_return"
-    for expr in "${exprs[@]}"; do
-        evaluate "$env" "$expr"
-        if [[ "$g_return" != "_" ]]; then
-            stringify "$g_return"
-            echo "$g_return"
-        fi
-    done
+    evaluate_list "$env" "${exprs[@]}"
 }
 
 main "$@"
