@@ -3,8 +3,7 @@ use data::ValueRef;
 use regex::Regex;
 
 fn make_quote(value: ValueRef) -> ValueRef {
-    ValueRef::from_native_list(
-        &[ValueRef::new(Value::Symbol("quote".to_string())), value])
+    ValueRef::from_native_list(&[ValueRef::new(Value::Symbol("quote".to_string())), value])
 }
 
 fn parse_skip(code: &str) -> &str {
@@ -35,7 +34,10 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
         if !next_code.starts_with(")") {
             return Err("Parse error".to_string());
         }
-        return Ok((ValueRef::from_native_list(values.as_slice()), &next_code[1..]));
+        return Ok((
+            ValueRef::from_native_list(values.as_slice()),
+            &next_code[1..],
+        ));
     }
 
     let m = TOKEN_RE.find(code).ok_or("Malformed token".to_string())?;

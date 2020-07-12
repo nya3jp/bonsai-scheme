@@ -60,13 +60,15 @@ pub struct ValueRef {
 
 impl Clone for ValueRef {
     fn clone(&self) -> Self {
-        ValueRef{r: self.r.clone()}
+        ValueRef { r: self.r.clone() }
     }
 }
 
 impl ValueRef {
     pub fn new(value: Value) -> Self {
-        ValueRef{r: Rc::new(RefCell::new(value))}
+        ValueRef {
+            r: Rc::new(RefCell::new(value)),
+        }
     }
 
     pub fn borrow(&self) -> Ref<Value> {
@@ -96,7 +98,7 @@ impl ValueRef {
                     &Value::Pair(ref car, ref cdr) => {
                         values.push(car.clone());
                         cdr.clone()
-                    },
+                    }
                     _ => return Err(Error::new("Not a list".into())),
                 }
             };
@@ -106,7 +108,11 @@ impl ValueRef {
 
     pub fn bool(&self) -> bool {
         let r = self.borrow();
-        if let &Value::Boolean(false) = &*r { false } else { true }
+        if let &Value::Boolean(false) = &*r {
+            false
+        } else {
+            true
+        }
     }
 
     pub fn as_integer(&self) -> Result<i32, Error> {

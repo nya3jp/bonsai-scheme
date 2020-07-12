@@ -14,13 +14,17 @@ pub struct Variable {
 
 impl Variable {
     pub fn new() -> Variable {
-        Variable{value: ValueRef::new(Value::Undef)}
+        Variable {
+            value: ValueRef::new(Value::Undef),
+        }
     }
 }
 
 impl Clone for Variable {
     fn clone(&self) -> Self {
-        Variable{value: self.value.clone()}
+        Variable {
+            value: self.value.clone(),
+        }
     }
 }
 
@@ -37,13 +41,18 @@ impl Env {
     }
 
     pub fn new(parent: Option<Rc<RefCell<Env>>>) -> Rc<RefCell<Env>> {
-        Rc::new(RefCell::new(Env{parent: parent, vars: HashMap::new()}))
+        Rc::new(RefCell::new(Env {
+            parent: parent,
+            vars: HashMap::new(),
+        }))
     }
 
     pub fn ensure(env: &Rc<RefCell<Env>>, name: &str) -> Rc<RefCell<Variable>> {
         let mut env_ref = env.borrow_mut();
         if !env_ref.vars.contains_key(name) {
-            env_ref.vars.insert(name.to_string(), Rc::new(RefCell::new(Variable::new())));
+            env_ref
+                .vars
+                .insert(name.to_string(), Rc::new(RefCell::new(Variable::new())));
         }
         env_ref.vars.get(name).unwrap().clone()
     }
@@ -71,7 +80,9 @@ impl Env {
             &Value::Null => Ok(expr.clone()),
             &Value::Boolean(_) => Ok(expr.clone()),
             &Value::Integer(_) => Ok(expr.clone()),
-            &Value::Symbol(ref name) => Env::lookup(env, name).ok_or(Error::new(format!("Not found: {}", name))),
+            &Value::Symbol(ref name) => {
+                Env::lookup(env, name).ok_or(Error::new(format!("Not found: {}", name)))
+            }
             &Value::Pair(ref car, ref cdr) => {
                 {
                     let rr = car.borrow();
@@ -88,7 +99,7 @@ impl Env {
                     args.push(Env::evaluate(env, expr)?);
                 }
                 func.apply(args.as_slice())
-            },
+            }
             _ => Err(Error::new("Evaluate failed".into())),
         }
     }

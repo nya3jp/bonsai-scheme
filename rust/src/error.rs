@@ -5,7 +5,7 @@ pub struct Error {
 
 impl Error {
     pub(crate) fn new(msg: String) -> Error {
-        Error{msg}
+        Error { msg }
     }
 }
 

@@ -30,7 +30,9 @@ fn main() {
     };
 
     let mut code = String::new();
-    let _ = file.read_to_string(&mut code).expect("Failed to read the file");
+    let _ = file
+        .read_to_string(&mut code)
+        .expect("Failed to read the file");
     let code = code;
 
     let exprs = parser::parse(&code).expect("Parse error");

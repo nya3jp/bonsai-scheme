@@ -112,7 +112,10 @@ fn builtin_add(args: &[ValueRef]) -> Result<ValueRef, Error> {
 }
 
 fn builtin_sub(args: &[ValueRef]) -> Result<ValueRef, Error> {
-    let mut result = args.first().ok_or(Error::new("-: Invalid number of arguments".into()))?.as_integer()?;
+    let mut result = args
+        .first()
+        .ok_or(Error::new("-: Invalid number of arguments".into()))?
+        .as_integer()?;
     for value in &args[1..] {
         result -= value.as_integer()?;
     }
@@ -128,7 +131,10 @@ fn builtin_mul(args: &[ValueRef]) -> Result<ValueRef, Error> {
 }
 
 fn builtin_div(args: &[ValueRef]) -> Result<ValueRef, Error> {
-    let mut result = args.first().ok_or(Error::new("/: Invalid number of arguments".into()))?.as_integer()?;
+    let mut result = args
+        .first()
+        .ok_or(Error::new("/: Invalid number of arguments".into()))?
+        .as_integer()?;
     for value in &args[1..] {
         result /= value.as_integer()?;
     }
@@ -154,10 +160,17 @@ impl Function for BuiltinFunction {
     }
 }
 
-fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, Error>) {
+fn register(
+    env: &Rc<RefCell<Env>>,
+    name: &str,
+    func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, Error>,
+) {
     let name_string = name.to_string();
     let var = Env::ensure(env, &name_string);
-    var.borrow_mut().value = ValueRef::new(Value::Function(name_string, Rc::new(BuiltinFunction{func: func})));
+    var.borrow_mut().value = ValueRef::new(Value::Function(
+        name_string,
+        Rc::new(BuiltinFunction { func: func }),
+    ));
 }
 
 pub fn install(env: &Rc<RefCell<Env>>) {
