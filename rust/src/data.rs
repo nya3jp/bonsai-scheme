@@ -4,8 +4,10 @@ use std::cell::RefMut;
 use std::fmt;
 use std::rc::Rc;
 
+use error::Error;
+
 pub trait Function {
-    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef, String>;
+    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef, Error>;
 }
 
 pub enum Value {
@@ -83,7 +85,7 @@ impl ValueRef {
         list_value
     }
 
-    pub fn to_native_list(&self) -> Result<Vec<ValueRef>, String> {
+    pub fn to_native_list(&self) -> Result<Vec<ValueRef>, Error> {
         let mut values = vec![];
         let mut current = self.clone();
         loop {
@@ -95,7 +97,7 @@ impl ValueRef {
                         values.push(car.clone());
                         cdr.clone()
                     },
-                    _ => return Err("Not a list".to_string()),
+                    _ => return Err(Error::new("Not a list".into())),
                 }
             };
         }
@@ -107,39 +109,39 @@ impl ValueRef {
         if let &Value::Boolean(false) = &*r { false } else { true }
     }
 
-    pub fn as_integer(&self) -> Result<i32, String> {
+    pub fn as_integer(&self) -> Result<i32, Error> {
         let r = self.borrow();
         if let &Value::Integer(i) = &*r {
             Ok(i)
         } else {
-            Err("Not an integer".to_string())
+            Err(Error::new("Not an integer".into()))
         }
     }
 
-    pub fn as_symbol(&self) -> Result<String, String> {
+    pub fn as_symbol(&self) -> Result<String, Error> {
         let r = self.borrow();
         if let &Value::Symbol(ref name) = &*r {
             Ok(name.clone())
         } else {
-            Err("Not a symbol".to_string())
+            Err(Error::new("Not a symbol".into()))
         }
     }
 
-    pub fn as_pair(&self) -> Result<(ValueRef, ValueRef), String> {
+    pub fn as_pair(&self) -> Result<(ValueRef, ValueRef), Error> {
         let r = self.borrow();
         if let &Value::Pair(ref car, ref cdr) = &*r {
             Ok((car.clone(), cdr.clone()))
         } else {
-            Err("Not a pair".to_string())
+            Err(Error::new("Not a pair".into()))
         }
     }
 
-    pub fn as_function(&self) -> Result<(String, Rc<dyn Function>), String> {
+    pub fn as_function(&self) -> Result<(String, Rc<dyn Function>), Error> {
         let r = self.borrow();
         if let &Value::Function(ref name, ref func) = &*r {
             Ok((name.clone(), func.clone()))
         } else {
-            Err("Not a function".to_string())
+            Err(Error::new("Not a function".into()))
         }
     }
 }

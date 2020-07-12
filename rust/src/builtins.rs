@@ -5,16 +5,17 @@ use data::Function;
 use data::Value;
 use data::ValueRef;
 use environment::Env;
+use error::Error;
 
-fn builtin_print(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_print(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 1 {
-        return Err("print: Invalid number of arguments".to_string());
+        return Err(Error::new("print: Invalid number of arguments".into()));
     }
     println!("{}", *args[0].borrow());
     Ok(ValueRef::new(Value::Undef))
 }
 
-fn builtin_and(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_and(args: &[ValueRef]) -> Result<ValueRef, Error> {
     let mut result = true;
     for value in args.iter() {
         result = result & value.bool();
@@ -22,7 +23,7 @@ fn builtin_and(args: &[ValueRef]) -> Result<ValueRef, String> {
     Ok(ValueRef::new(Value::Boolean(result)))
 }
 
-fn builtin_or(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_or(args: &[ValueRef]) -> Result<ValueRef, Error> {
     let mut result = false;
     for value in args.iter() {
         result = result | value.bool();
@@ -30,79 +31,79 @@ fn builtin_or(args: &[ValueRef]) -> Result<ValueRef, String> {
     Ok(ValueRef::new(Value::Boolean(result)))
 }
 
-fn builtin_not(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_not(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 1 {
-        return Err("not: Invalid number of arguments".to_string());
+        return Err(Error::new("not: Invalid number of arguments".into()));
     }
     let value = &args[0];
     Ok(ValueRef::new(Value::Boolean(!value.bool())))
 }
 
-fn builtin_cons(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_cons(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 2 {
-        return Err("cons: Invalid number of arguments".to_string());
+        return Err(Error::new("cons: Invalid number of arguments".into()));
     }
     let (car, cdr) = (&args[0], &args[1]);
     Ok(ValueRef::new(Value::Pair(car.clone(), cdr.clone())))
 }
 
-fn builtin_car(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_car(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 1 {
-        return Err("car: Invalid number of arguments".to_string());
+        return Err(Error::new("car: Invalid number of arguments".into()));
     }
     let (car, _) = args[0].as_pair()?;
     Ok(car.clone())
 }
 
-fn builtin_cdr(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_cdr(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 1 {
-        return Err("cdr: Invalid number of arguments".to_string());
+        return Err(Error::new("cdr: Invalid number of arguments".into()));
     }
     let (_, cdr) = args[0].as_pair()?;
     Ok(cdr.clone())
 }
 
-fn builtin_eq(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_eq(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 2 {
-        return Err("=: Invalid number of arguments".to_string());
+        return Err(Error::new("=: Invalid number of arguments".into()));
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(ValueRef::new(Value::Boolean(a == b)))
 }
 
-fn builtin_lt(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_lt(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 2 {
-        return Err("<: Invalid number of arguments".to_string());
+        return Err(Error::new("<: Invalid number of arguments".into()));
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(ValueRef::new(Value::Boolean(a < b)))
 }
 
-fn builtin_lte(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_lte(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 2 {
-        return Err("<=: Invalid number of arguments".to_string());
+        return Err(Error::new("<=: Invalid number of arguments".into()));
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(ValueRef::new(Value::Boolean(a <= b)))
 }
 
-fn builtin_gt(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_gt(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 2 {
-        return Err(">: Invalid number of arguments".to_string());
+        return Err(Error::new(">: Invalid number of arguments".into()));
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(ValueRef::new(Value::Boolean(a > b)))
 }
 
-fn builtin_gte(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_gte(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 2 {
-        return Err(">=: Invalid number of arguments".to_string());
+        return Err(Error::new(">=: Invalid number of arguments".into()));
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(ValueRef::new(Value::Boolean(a >= b)))
 }
 
-fn builtin_add(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_add(args: &[ValueRef]) -> Result<ValueRef, Error> {
     let mut result = 0;
     for value in args.iter() {
         result += value.as_integer()?;
@@ -110,15 +111,15 @@ fn builtin_add(args: &[ValueRef]) -> Result<ValueRef, String> {
     Ok(ValueRef::new(Value::Integer(result)))
 }
 
-fn builtin_sub(args: &[ValueRef]) -> Result<ValueRef, String> {
-    let mut result = args.first().ok_or("-: Invalid number of arguments".to_string())?.as_integer()?;
+fn builtin_sub(args: &[ValueRef]) -> Result<ValueRef, Error> {
+    let mut result = args.first().ok_or(Error::new("-: Invalid number of arguments".into()))?.as_integer()?;
     for value in &args[1..] {
         result -= value.as_integer()?;
     }
     Ok(ValueRef::new(Value::Integer(result)))
 }
 
-fn builtin_mul(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_mul(args: &[ValueRef]) -> Result<ValueRef, Error> {
     let mut result = 1;
     for value in args.iter() {
         result *= value.as_integer()?;
@@ -126,17 +127,17 @@ fn builtin_mul(args: &[ValueRef]) -> Result<ValueRef, String> {
     Ok(ValueRef::new(Value::Integer(result)))
 }
 
-fn builtin_div(args: &[ValueRef]) -> Result<ValueRef, String> {
-    let mut result = args.first().ok_or("/: Invalid number of arguments".to_string())?.as_integer()?;
+fn builtin_div(args: &[ValueRef]) -> Result<ValueRef, Error> {
+    let mut result = args.first().ok_or(Error::new("/: Invalid number of arguments".into()))?.as_integer()?;
     for value in &args[1..] {
         result /= value.as_integer()?;
     }
     Ok(ValueRef::new(Value::Integer(result)))
 }
 
-fn builtin_eq_check(args: &[ValueRef]) -> Result<ValueRef, String> {
+fn builtin_eq_check(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 2 {
-        return Err(">: Invalid number of arguments".to_string());
+        return Err(Error::new(">: Invalid number of arguments".into()));
     }
     let (lhs, rhs) = (&args[0], &args[1]);
     Ok(ValueRef::new(Value::Boolean(lhs == rhs)))
@@ -144,16 +145,16 @@ fn builtin_eq_check(args: &[ValueRef]) -> Result<ValueRef, String> {
 
 // FIXME: Can we get rid of this struct and use Fn directly?
 struct BuiltinFunction {
-    func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, String>,
+    func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, Error>,
 }
 
 impl Function for BuiltinFunction {
-    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef, String> {
+    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef, Error> {
         (self.func)(args)
     }
 }
 
-fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, String>) {
+fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef, Error>) {
     let name_string = name.to_string();
     let var = Env::ensure(env, &name_string);
     var.borrow_mut().value = ValueRef::new(Value::Function(name_string, Rc::new(BuiltinFunction{func: func})));
