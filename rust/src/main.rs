@@ -19,8 +19,9 @@ mod parser;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
+    let stdin = io::stdin();
     let mut file: Box<dyn Read> = if args.len() == 1 {
-        Box::new(io::stdin())
+        Box::new(stdin.lock())
     } else if args.len() == 2 {
         Box::new(File::open(&args[1]).unwrap())
     } else {
