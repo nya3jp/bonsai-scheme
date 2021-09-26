@@ -70,6 +70,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install Gauche
-      run: "curl -f https://raw.githubusercontent.com/shirok/get-gauche/master/get-gauche.sh | bash /dev/stdin --home"
+      run: sudo apt-get install -y --no-install-recommends gauche
     - name: Compile and run tests
-      run: PATH=$HOME/bin:$PATH reference/run_tests.sh
+      run: reference/run_tests.sh
