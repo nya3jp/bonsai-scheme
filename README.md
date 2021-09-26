@@ -1,6 +1,6 @@
 # Bonsai Scheme
 
-[![Build Status](https://github.com/nya3jp/bonsai-scheme/actions/workflows/ci.yml/badge.svg)](https://github.com/nya3jp/bonsai-scheme/actions/workflows/ci.yml)
+[![Build Status](https://github.com/nya3jp/bonsai-scheme/actions/workflows/test.yml/badge.svg)](https://github.com/nya3jp/bonsai-scheme/actions/workflows/test.yml)
 
 Bonsai Scheme is a collection of minimal Scheme implementations in various
 programming languages.
