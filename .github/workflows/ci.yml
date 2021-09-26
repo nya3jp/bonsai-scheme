@@ -12,54 +12,64 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: bash/run_tests.sh
+    - name: Compile and run tests
+      run: bash/run_tests.sh
   go:
     name: Go
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
-    - run: go/run_tests.sh
+    - name: Compile and run tests
+      run: go/run_tests.sh
   haskell:
     name: Haskell
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: haskell/actions/setup@v1
-    - run: haskell/run_tests.sh
+    - name: Compile and run tests
+      run: haskell/run_tests.sh
   javascript:
     name: JavaScript
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
-    - run: javascript/run_tests.sh
+    - name: Compile and run tests
+      run: javascript/run_tests.sh
   python:
     name: Python
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
-    - run: python/run_test.sh
+    - name: Compile and run tests
+      run: python/run_tests.sh
   rust:
     name: Rust
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
-    - run: python/run_test.sh
+      with:
+        toolchain: stable
+    - name: Compile and run tests
+      run: python/run_tests.sh
   typescript:
     name: TypeScript
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
-    - run: typescript/run_tests.sh
+    - name: Compile and run tests
+      run: typescript/run_tests.sh
   reference:
     name: Reference
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Install Gauche
-      run: "curl -f https://raw.githubusercontent.com/shirok/get-gauche/master/get-gauche.sh | bash -- --home"
-    - run: PATH=$HOME/bin:$PATH reference/run_tests.sh
+      run: "curl -f https://raw.githubusercontent.com/shirok/get-gauche/master/get-gauche.sh | bash /dev/stdin --home"
+    - name: Compile and run tests
+      run: PATH=$HOME/bin:$PATH reference/run_tests.sh
