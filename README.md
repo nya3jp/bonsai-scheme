@@ -1,6 +1,6 @@
 # Bonsai Scheme
 
-[![Build Status](https://travis-ci.com/nya3jp/bonsai-scheme.svg?branch=master)](https://travis-ci.com/nya3jp/bonsai-scheme)
+[![Build Status](https://github.com/nya3jp/bonsai-scheme/actions/workflows/ci.yml/badge.svg)](https://github.com/nya3jp/bonsai-scheme/actions/workflows/ci.yml)
 
 Bonsai Scheme is a collection of minimal Scheme implementations in various
 programming languages.
