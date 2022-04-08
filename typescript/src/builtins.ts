@@ -7,7 +7,7 @@ import {
   theFalse,
   theUndef,
   Undef,
-  Value
+  Value,
 } from './data';
 
 function print(value: Value): Undef {

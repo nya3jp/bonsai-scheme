@@ -5,7 +5,7 @@ import {
   Sym,
   theUndef,
   Value,
-  valueToArray
+  valueToArray,
 } from './data';
 import {evaluate} from './eval';
 
@@ -26,9 +26,11 @@ function begin(env: Environment, ...body: Value[]): Value {
 }
 
 function makeLambdaFunc(
-    env: Environment,
-    name: string,
-    rawParamsValue: Value, body: Value[]): Value {
+  env: Environment,
+  name: string,
+  rawParamsValue: Value,
+  body: Value[]
+): Value {
   const rawParams = valueToArray(rawParamsValue);
   const params: string[] = [];
   for (const rawParam of rawParams) {
@@ -37,11 +39,12 @@ function makeLambdaFunc(
     }
     params.push(rawParam.name);
   }
-  return new Func(name, function(...args: Value[]): Value {
+  return new Func(name, (...args: Value[]): Value => {
     const argsEnv = new Environment(env);
     if (args.length !== params.length) {
       throw new Error(
-          `Function got ${args.length} arg(s); want ${params.length}`);
+        `Function got ${args.length} arg(s); want ${params.length}`
+      );
     }
     for (let i = 0; i < params.length; ++i) {
       argsEnv.ensure(params[i]).value = args[i];
@@ -51,7 +54,10 @@ function makeLambdaFunc(
 }
 
 function lambda(
-    env: Environment, rawParamsValue: Value, ...body: Value[]): Value {
+  env: Environment,
+  rawParamsValue: Value,
+  ...body: Value[]
+): Value {
   return makeLambdaFunc(env, '<lambda>', rawParamsValue, body);
 }
 
@@ -82,7 +88,11 @@ function define(env: Environment, ...rawArgs: Value[]): Value {
 }
 
 function ifs(
-    env: Environment, rawTest: Value, rawThen: Value, rawElse: Value): Value {
+  env: Environment,
+  rawTest: Value,
+  rawThen: Value,
+  rawElse: Value
+): Value {
   const test = evaluate(env, rawTest);
   if (test.bool()) {
     return evaluate(env, rawThen);
@@ -109,14 +119,18 @@ function cond(env: Environment, ...clauseValues: Value[]): Value {
 }
 
 interface LetEnvFunc {
-  (envs: { curEnv: Environment; origEnv: Environment}):
-      { nextEnv: Environment; evalEnv: Environment };
+  (envs: {curEnv: Environment; origEnv: Environment}): {
+    nextEnv: Environment;
+    evalEnv: Environment;
+  };
 }
 
-function letCommon(name: string,
-                   env: Environment,
-                   rawArgs: Value[],
-                   letEnvFunc: LetEnvFunc): Value {
+function letCommon(
+  name: string,
+  env: Environment,
+  rawArgs: Value[],
+  letEnvFunc: LetEnvFunc
+): Value {
   const bindingValues = valueToArray(rawArgs[0]);
   let curEnv = new Environment(env);
   for (const bindingValue of bindingValues) {
@@ -128,7 +142,7 @@ function letCommon(name: string,
     if (!(sym instanceof Sym)) {
       throw new Error(`Malformed ${name}: symbol expected`);
     }
-    const { nextEnv, evalEnv } = letEnvFunc({ curEnv, origEnv: env });
+    const {nextEnv, evalEnv} = letEnvFunc({curEnv, origEnv: env});
     const value = evaluate(evalEnv, binding[1]);
     curEnv = nextEnv;
     curEnv.ensure(sym.name).value = value;
@@ -137,27 +151,36 @@ function letCommon(name: string,
 }
 
 function letPlain(env: Environment, ...rawArgs: Value[]): Value {
-  return letCommon('let', env, rawArgs,
-      function({ curEnv, origEnv }:
-                   { curEnv: Environment; origEnv: Environment}) {
-    return { nextEnv: curEnv, evalEnv: origEnv };
-  });
+  return letCommon(
+    'let',
+    env,
+    rawArgs,
+    ({curEnv, origEnv}: {curEnv: Environment; origEnv: Environment}) => {
+      return {nextEnv: curEnv, evalEnv: origEnv};
+    }
+  );
 }
 
 function letStar(env: Environment, ...rawArgs: Value[]): Value {
-  return letCommon('let*', env, rawArgs,
-      function({ curEnv }:
-                   { curEnv: Environment; origEnv: Environment}) {
-    return { nextEnv: new Environment(curEnv), evalEnv: curEnv };
-  });
+  return letCommon(
+    'let*',
+    env,
+    rawArgs,
+    ({curEnv}: {curEnv: Environment; origEnv: Environment}) => {
+      return {nextEnv: new Environment(curEnv), evalEnv: curEnv};
+    }
+  );
 }
 
 function letRec(env: Environment, ...rawArgs: Value[]): Value {
-  return letCommon('letrec', env, rawArgs,
-      function({ curEnv }:
-                   { curEnv: Environment; origEnv: Environment}) {
-    return { nextEnv: curEnv, evalEnv: curEnv };
-  });
+  return letCommon(
+    'letrec',
+    env,
+    rawArgs,
+    ({curEnv}: {curEnv: Environment; origEnv: Environment}) => {
+      return {nextEnv: curEnv, evalEnv: curEnv};
+    }
+  );
 }
 
 function set(env: Environment, sym: Value, rawValue: Value): Value {
