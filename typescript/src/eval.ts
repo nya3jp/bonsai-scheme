@@ -3,10 +3,11 @@ import {
   Environment,
   Func,
   Int,
-  Pair, Sym,
+  Pair,
+  Sym,
   Undef,
   Value,
-  valueToArray
+  valueToArray,
 } from './data';
 import {allForms} from './forms';
 
@@ -29,7 +30,7 @@ export function evaluate(env: Environment, expr: Value): Value {
     if (!(func instanceof Func)) {
       throw new Error('can not call non-function value');
     }
-    const args = rawArgs.map((rawArg) => evaluate(env, rawArg));
+    const args = rawArgs.map(rawArg => evaluate(env, rawArg));
     return func.call(args);
   }
   throw new Error('not evaluatable value');

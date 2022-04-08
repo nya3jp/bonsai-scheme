@@ -30,7 +30,7 @@ async function mainImpl(): Promise<void> {
 }
 
 function main(): void {
-  mainImpl().catch((err) => {
+  mainImpl().catch(err => {
     console.error(err);
     process.exit(1);
   });
