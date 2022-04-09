@@ -213,17 +213,17 @@ function setCdr(env: Environment, rawPair: Value, rawValue: Value): Value {
   return theUndef;
 }
 
-export const allForms = new Map();
-
-allForms.set('quote', quote);
-allForms.set('begin', begin);
-allForms.set('lambda', lambda);
-allForms.set('define', define);
-allForms.set('if', ifs);
-allForms.set('cond', cond);
-allForms.set('let', letPlain);
-allForms.set('let*', letStar);
-allForms.set('letrec', letRec);
-allForms.set('set!', set);
-allForms.set('set-car!', setCar);
-allForms.set('set-cdr!', setCdr);
+export const allForms = new Map([
+  ['quote', quote],
+  ['begin', begin],
+  ['lambda', lambda],
+  ['define', define],
+  ['if', ifs],
+  ['cond', cond],
+  ['let', letPlain],
+  ['let*', letStar],
+  ['letrec', letRec],
+  ['set!', set],
+  ['set-car!', setCar],
+  ['set-cdr!', setCdr],
+]);

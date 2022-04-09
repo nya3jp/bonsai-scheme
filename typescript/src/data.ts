@@ -87,7 +87,7 @@ export function valueToArray(value: Value): Value[] {
 }
 
 export class Bool implements Value {
-  constructor(public rawValue: boolean) {}
+  constructor(public readonly rawValue: boolean) {}
 
   toString(): string {
     return this.rawValue ? '#t' : '#f';
@@ -113,7 +113,7 @@ export function createBool(rawValue: boolean): Bool {
 }
 
 export class Int implements Value {
-  constructor(public rawValue: number) {}
+  constructor(public readonly rawValue: number) {}
 
   toString(): string {
     return String(this.rawValue);
@@ -132,7 +132,7 @@ export class Int implements Value {
 }
 
 export class Sym implements Value {
-  constructor(public name: string) {}
+  constructor(public readonly name: string) {}
 
   toString(): string {
     return this.name;
@@ -151,7 +151,10 @@ export class Sym implements Value {
 }
 
 export class Func implements Value {
-  constructor(public name: string, public func: (...args: Value[]) => Value) {}
+  constructor(
+    public readonly name: string,
+    public readonly func: (...args: Value[]) => Value
+  ) {}
 
   toString(): string {
     return this.name;
@@ -178,12 +181,9 @@ export class Variable {
 }
 
 export class Environment {
-  public vars: Map<string, Variable> = new Map();
+  public readonly vars = new Map<string, Variable>();
 
-  constructor(public parent?: Environment) {
-    this.parent = parent;
-    this.vars = new Map();
-  }
+  constructor(public readonly parent?: Environment) {}
 
   ensure(name: string): Variable {
     let v = this.vars.get(name);

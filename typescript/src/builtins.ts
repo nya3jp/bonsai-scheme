@@ -86,10 +86,14 @@ function gte(a: Value, b: Value): Bool {
   return createBool(unwrapInt(a) >= unwrapInt(b));
 }
 
+function unwrapBool(value: Value): boolean {
+  return !value.equals(theFalse);
+}
+
 function and(...args: Value[]): Bool {
   let result = true;
   for (const arg of args) {
-    result = result && !arg.equals(theFalse);
+    result = result && unwrapBool(arg);
   }
   return createBool(result);
 }
@@ -97,13 +101,13 @@ function and(...args: Value[]): Bool {
 function or(...args: Value[]): Bool {
   let result = false;
   for (const arg of args) {
-    result = result || !arg.equals(theFalse);
+    result = result || unwrapBool(arg);
   }
   return createBool(result);
 }
 
 function not(value: Value): Bool {
-  return createBool(value.equals(theFalse));
+  return createBool(!unwrapBool(value));
 }
 
 function eqCheck(a: Value, b: Value): Bool {
@@ -128,26 +132,29 @@ function cdr(value: Value): Value {
   return value.cdr;
 }
 
-export const allBuiltins = new Map<string, Func>();
-
-function register(name: string, func: (...args: Value[]) => Value): void {
-  allBuiltins.set(name, new Func(name, func));
+function builtin(
+  name: string,
+  func: (...args: Value[]) => Value
+): [string, Func] {
+  return [name, new Func(name, func)];
 }
 
-register('print', print);
-register('+', add);
-register('-', sub);
-register('*', mul);
-register('/', div);
-register('=', eq);
-register('<', lt);
-register('<=', lte);
-register('>', gt);
-register('>=', gte);
-register('and', and);
-register('or', or);
-register('not', not);
-register('eq?', eqCheck);
-register('cons', cons);
-register('car', car);
-register('cdr', cdr);
+export const allBuiltins = new Map<string, Func>([
+  builtin('print', print),
+  builtin('+', add),
+  builtin('-', sub),
+  builtin('*', mul),
+  builtin('/', div),
+  builtin('=', eq),
+  builtin('<', lt),
+  builtin('<=', lte),
+  builtin('>', gt),
+  builtin('>=', gte),
+  builtin('and', and),
+  builtin('or', or),
+  builtin('not', not),
+  builtin('eq?', eqCheck),
+  builtin('cons', cons),
+  builtin('car', car),
+  builtin('cdr', cdr),
+]);
