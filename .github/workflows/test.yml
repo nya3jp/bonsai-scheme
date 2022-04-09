@@ -30,14 +30,6 @@ jobs:
     - uses: haskell/actions/setup@v1
     - name: Compile and run tests
       run: haskell/run_tests.sh
-  javascript:
-    name: JavaScript
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-    - name: Compile and run tests
-      run: javascript/run_tests.sh
   python:
     name: Python
     runs-on: ubuntu-latest
