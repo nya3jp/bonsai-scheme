@@ -1,4 +1,4 @@
-import {arrayToValue, Int, Sym, theFalse, theTrue, Value} from './data';
+import {arrayToValue, Bool, Int, Sym, Value} from './data';
 
 const SKIP_RE = /^(\s+|;.*)+/;
 const TOKEN_RE = /^[^\s);]+/;
@@ -41,9 +41,9 @@ function parsePartialValue(code: string): {value: Value; code: string} {
     const num = parseInt(token);
     value = new Int(num);
   } else if (token === '#f') {
-    value = theFalse;
+    value = Bool.theFalse;
   } else if (token === '#t') {
-    value = theTrue;
+    value = Bool.theTrue;
   } else {
     value = new Sym(token);
   }

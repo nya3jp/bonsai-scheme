@@ -1,12 +1,4 @@
-import {
-  Environment,
-  Func,
-  Pair,
-  Sym,
-  theUndef,
-  Value,
-  valueToArray,
-} from './data';
+import {Environment, Func, Pair, Sym, Undef, Value, valueToArray} from './data';
 import {evaluate} from './eval';
 
 function quote(env: Environment, value: Value): Value {
@@ -14,7 +6,7 @@ function quote(env: Environment, value: Value): Value {
 }
 
 function evalBody(env: Environment, body: Value[]): Value {
-  let result = theUndef;
+  let result = Undef.theValue;
   for (const expr of body) {
     result = evaluate(env, expr);
   }
@@ -72,7 +64,7 @@ function define(env: Environment, ...rawArgs: Value[]): Value {
     }
     const value = evaluate(env, rawArgs[1]);
     env.ensure(target.name).value = value;
-    return theUndef;
+    return Undef.theValue;
   }
   if (!(target instanceof Pair)) {
     throw new Error('Malformed define: symbol or list required');
@@ -84,7 +76,7 @@ function define(env: Environment, ...rawArgs: Value[]): Value {
   const name = sym.name;
   const value = makeLambdaFunc(env, name, target.cdr, rawArgs.slice(1));
   env.ensure(name).value = value;
-  return theUndef;
+  return Undef.theValue;
 }
 
 function ifs(
@@ -97,7 +89,7 @@ function ifs(
   if (test.bool()) {
     return evaluate(env, rawThen);
   }
-  return rawElse ? evaluate(env, rawElse) : theUndef;
+  return rawElse ? evaluate(env, rawElse) : Undef.theValue;
 }
 
 function cond(env: Environment, ...clauseValues: Value[]): Value {
@@ -115,7 +107,7 @@ function cond(env: Environment, ...clauseValues: Value[]): Value {
       return evaluate(env, clause[1]);
     }
   }
-  return theUndef;
+  return Undef.theValue;
 }
 
 interface LetEnvFunc {
@@ -190,7 +182,7 @@ function set(env: Environment, sym: Value, rawValue: Value): Value {
   const value = evaluate(env, rawValue);
   const v = env.lookup(sym.name);
   v.value = value;
-  return theUndef;
+  return Undef.theValue;
 }
 
 function setCar(env: Environment, rawPair: Value, rawValue: Value): Value {
@@ -200,7 +192,7 @@ function setCar(env: Environment, rawPair: Value, rawValue: Value): Value {
     throw new Error('set-car!: not a pair');
   }
   pair.car = value;
-  return theUndef;
+  return Undef.theValue;
 }
 
 function setCdr(env: Environment, rawPair: Value, rawValue: Value): Value {
@@ -210,7 +202,7 @@ function setCdr(env: Environment, rawPair: Value, rawValue: Value): Value {
     throw new Error('set-cdr!: not a pair');
   }
   pair.cdr = value;
-  return theUndef;
+  return Undef.theValue;
 }
 
 export const allForms = new Map([

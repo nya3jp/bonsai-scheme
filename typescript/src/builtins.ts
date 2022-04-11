@@ -1,18 +1,8 @@
-import {
-  Bool,
-  createBool,
-  Func,
-  Int,
-  Pair,
-  theFalse,
-  theUndef,
-  Undef,
-  Value,
-} from './data';
+import {Bool, Func, Int, Pair, Undef, Value} from './data';
 
 function print(value: Value): Undef {
   console.log(value.toString());
-  return theUndef;
+  return Undef.theValue;
 }
 
 function unwrapInt(value: Value): number {
@@ -67,23 +57,23 @@ function div(...args: Value[]): Int {
 }
 
 function eq(a: Value, b: Value): Bool {
-  return createBool(unwrapInt(a) === unwrapInt(b));
+  return Bool.valueOf(unwrapInt(a) === unwrapInt(b));
 }
 
 function lt(a: Value, b: Value): Bool {
-  return createBool(unwrapInt(a) < unwrapInt(b));
+  return Bool.valueOf(unwrapInt(a) < unwrapInt(b));
 }
 
 function lte(a: Value, b: Value): Bool {
-  return createBool(unwrapInt(a) <= unwrapInt(b));
+  return Bool.valueOf(unwrapInt(a) <= unwrapInt(b));
 }
 
 function gt(a: Value, b: Value): Bool {
-  return createBool(unwrapInt(a) > unwrapInt(b));
+  return Bool.valueOf(unwrapInt(a) > unwrapInt(b));
 }
 
 function gte(a: Value, b: Value): Bool {
-  return createBool(unwrapInt(a) >= unwrapInt(b));
+  return Bool.valueOf(unwrapInt(a) >= unwrapInt(b));
 }
 
 function and(...args: Value[]): Bool {
@@ -91,7 +81,7 @@ function and(...args: Value[]): Bool {
   for (const arg of args) {
     result = result && arg.bool();
   }
-  return createBool(result);
+  return Bool.valueOf(result);
 }
 
 function or(...args: Value[]): Bool {
@@ -99,15 +89,15 @@ function or(...args: Value[]): Bool {
   for (const arg of args) {
     result = result || arg.bool();
   }
-  return createBool(result);
+  return Bool.valueOf(result);
 }
 
 function not(value: Value): Bool {
-  return createBool(!value.bool());
+  return Bool.valueOf(!value.bool());
 }
 
 function eqCheck(a: Value, b: Value): Bool {
-  return createBool(a.equals(b));
+  return Bool.valueOf(a.equals(b));
 }
 
 function cons(car: Value, cdr: Value): Pair {

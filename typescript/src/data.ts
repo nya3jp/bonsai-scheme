@@ -5,6 +5,10 @@ export interface Value {
 }
 
 export class Undef implements Value {
+  static readonly theValue = new Undef();
+
+  private constructor() {}
+
   toString(): string {
     return '#undef';
   }
@@ -18,9 +22,11 @@ export class Undef implements Value {
   }
 }
 
-export const theUndef = new Undef();
-
 export class Null implements Value {
+  static readonly theValue = new Null();
+
+  private constructor() {}
+
   toString(): string {
     return '()';
   }
@@ -33,8 +39,6 @@ export class Null implements Value {
     return true;
   }
 }
-
-export const theNull = new Null();
 
 export class Pair implements Value {
   constructor(public car: Value, public cdr: Value) {}
@@ -67,7 +71,7 @@ export class Pair implements Value {
 }
 
 export function arrayToValue(array: Value[]): Value {
-  let value = theNull;
+  let value = Null.theValue;
   for (let i = array.length - 1; i >= 0; --i) {
     value = new Pair(array[i], value);
   }
@@ -80,14 +84,21 @@ export function valueToArray(value: Value): Value[] {
     array.push(value.car);
     value = value.cdr;
   }
-  if (!value.equals(theNull)) {
+  if (!value.equals(Null.theValue)) {
     throw new Error('not a list value');
   }
   return array;
 }
 
 export class Bool implements Value {
-  constructor(public readonly rawValue: boolean) {}
+  static readonly theFalse = new Bool(false);
+  static readonly theTrue = new Bool(true);
+
+  private constructor(public readonly rawValue: boolean) {}
+
+  static valueOf(rawValue: boolean): Bool {
+    return rawValue ? Bool.theTrue : Bool.theFalse;
+  }
 
   toString(): string {
     return this.rawValue ? '#t' : '#f';
@@ -103,13 +114,6 @@ export class Bool implements Value {
   bool(): boolean {
     return this.rawValue;
   }
-}
-
-export const theFalse = new Bool(false);
-export const theTrue = new Bool(true);
-
-export function createBool(rawValue: boolean): Bool {
-  return rawValue ? theTrue : theFalse;
 }
 
 export class Int implements Value {
@@ -188,7 +192,7 @@ export class Environment {
   ensure(name: string): Variable {
     let v = this.vars.get(name);
     if (v === undefined) {
-      v = new Variable(theUndef);
+      v = new Variable(Undef.theValue);
       this.vars.set(name, v);
     }
     return v;
