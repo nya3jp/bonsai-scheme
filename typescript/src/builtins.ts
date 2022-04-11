@@ -86,14 +86,10 @@ function gte(a: Value, b: Value): Bool {
   return createBool(unwrapInt(a) >= unwrapInt(b));
 }
 
-function unwrapBool(value: Value): boolean {
-  return !value.equals(theFalse);
-}
-
 function and(...args: Value[]): Bool {
   let result = true;
   for (const arg of args) {
-    result = result && unwrapBool(arg);
+    result = result && arg.bool();
   }
   return createBool(result);
 }
@@ -101,13 +97,13 @@ function and(...args: Value[]): Bool {
 function or(...args: Value[]): Bool {
   let result = false;
   for (const arg of args) {
-    result = result || unwrapBool(arg);
+    result = result || arg.bool();
   }
   return createBool(result);
 }
 
 function not(value: Value): Bool {
-  return createBool(!unwrapBool(value));
+  return createBool(!value.bool());
 }
 
 function eqCheck(a: Value, b: Value): Bool {
