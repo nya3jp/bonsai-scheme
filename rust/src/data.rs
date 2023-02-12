@@ -4,7 +4,7 @@ use std::cell::RefMut;
 use std::fmt;
 use std::rc::Rc;
 
-use error::Error;
+use crate::error::Error;
 
 pub trait Function {
     fn apply(&self, args: &[ValueRef]) -> Result<ValueRef, Error>;

@@ -2,11 +2,11 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use builtins;
-use data::Value;
-use data::ValueRef;
-use error::Error;
-use forms;
+use crate::builtins;
+use crate::data::Value;
+use crate::data::ValueRef;
+use crate::error::Error;
+use crate::forms;
 
 pub struct Variable {
     pub value: ValueRef,

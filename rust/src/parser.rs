@@ -1,6 +1,6 @@
-use data::Value;
-use data::ValueRef;
-use regex::Regex;
+use crate::data::Value;
+use crate::data::ValueRef;
+use crate::regex::Regex;
 
 fn make_quote(value: ValueRef) -> ValueRef {
     ValueRef::from_native_list(&[ValueRef::new(Value::Symbol("quote".to_string())), value])

@@ -1,6 +1,7 @@
 [package]
 name = "minscheme"
 version = "0.1.0"
+edition = "2021"
 authors = ["nya <takahashi.shuhei@gmail.com>"]
 
 [dependencies]

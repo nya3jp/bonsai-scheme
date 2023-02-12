@@ -1,11 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use data::Function;
-use data::Value;
-use data::ValueRef;
-use environment::Env;
-use error::Error;
+use crate::data::Function;
+use crate::data::Value;
+use crate::data::ValueRef;
+use crate::environment::Env;
+use crate::error::Error;
 
 fn builtin_print(args: &[ValueRef]) -> Result<ValueRef, Error> {
     if args.len() != 1 {
