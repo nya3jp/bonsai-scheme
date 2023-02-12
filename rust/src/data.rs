@@ -26,7 +26,7 @@ impl PartialEq for Value {
             (&Value::Undef, &Value::Undef) => true,
             (&Value::Boolean(a), &Value::Boolean(b)) => a == b,
             (&Value::Integer(a), &Value::Integer(b)) => a == b,
-            (&Value::Symbol(ref a), &Value::Symbol(ref b)) => a == b,
+            (Value::Symbol(a), Value::Symbol(b)) => a == b,
             (&Value::Null, &Value::Null) => true,
             _ => false,
         }
@@ -40,10 +40,10 @@ impl fmt::Display for Value {
             &Value::Boolean(false) => write!(f, "#f"),
             &Value::Boolean(true) => write!(f, "#t"),
             &Value::Integer(i) => write!(f, "{}", i),
-            &Value::Symbol(ref name) => write!(f, "{}", name),
+            Value::Symbol(name) => write!(f, "{}", name),
             &Value::Null => write!(f, "()"),
-            &Value::Pair(ref car, ref cdr) => write!(f, "({} . {})", car, cdr),
-            &Value::Function(ref name, _) => write!(f, "{}", name),
+            Value::Pair(car, cdr) => write!(f, "({} . {})", car, cdr),
+            Value::Function(name, _) => write!(f, "{}", name),
         }
     }
 }
@@ -95,7 +95,7 @@ impl ValueRef {
                 let r = current.borrow();
                 match &*r {
                     &Value::Null => break,
-                    &Value::Pair(ref car, ref cdr) => {
+                    Value::Pair(car, cdr) => {
                         values.push(car.clone());
                         cdr.clone()
                     }
@@ -126,7 +126,7 @@ impl ValueRef {
 
     pub fn as_symbol(&self) -> Result<String, Error> {
         let r = self.borrow();
-        if let &Value::Symbol(ref name) = &*r {
+        if let Value::Symbol(name) = &*r {
             Ok(name.clone())
         } else {
             Err(Error::new("Not a symbol".into()))
@@ -135,7 +135,7 @@ impl ValueRef {
 
     pub fn as_pair(&self) -> Result<(ValueRef, ValueRef), Error> {
         let r = self.borrow();
-        if let &Value::Pair(ref car, ref cdr) = &*r {
+        if let Value::Pair(car, cdr) = &*r {
             Ok((car.clone(), cdr.clone()))
         } else {
             Err(Error::new("Not a pair".into()))
@@ -144,7 +144,7 @@ impl ValueRef {
 
     pub fn as_function(&self) -> Result<(String, Rc<dyn Function>), Error> {
         let r = self.borrow();
-        if let &Value::Function(ref name, ref func) = &*r {
+        if let Value::Function(name, func) = &*r {
             Ok((name.clone(), func.clone()))
         } else {
             Err(Error::new("Not a function".into()))

@@ -18,7 +18,7 @@ fn builtin_print(args: &[ValueRef]) -> Result<ValueRef, Error> {
 fn builtin_and(args: &[ValueRef]) -> Result<ValueRef, Error> {
     let mut result = true;
     for value in args.iter() {
-        result = result & value.bool();
+        result &= value.bool();
     }
     Ok(ValueRef::new(Value::Boolean(result)))
 }
@@ -26,7 +26,7 @@ fn builtin_and(args: &[ValueRef]) -> Result<ValueRef, Error> {
 fn builtin_or(args: &[ValueRef]) -> Result<ValueRef, Error> {
     let mut result = false;
     for value in args.iter() {
-        result = result | value.bool();
+        result |= value.bool();
     }
     Ok(ValueRef::new(Value::Boolean(result)))
 }
@@ -52,7 +52,7 @@ fn builtin_car(args: &[ValueRef]) -> Result<ValueRef, Error> {
         return Err(Error::new("car: Invalid number of arguments".into()));
     }
     let (car, _) = args[0].as_pair()?;
-    Ok(car.clone())
+    Ok(car)
 }
 
 fn builtin_cdr(args: &[ValueRef]) -> Result<ValueRef, Error> {
@@ -60,7 +60,7 @@ fn builtin_cdr(args: &[ValueRef]) -> Result<ValueRef, Error> {
         return Err(Error::new("cdr: Invalid number of arguments".into()));
     }
     let (_, cdr) = args[0].as_pair()?;
-    Ok(cdr.clone())
+    Ok(cdr)
 }
 
 fn builtin_eq(args: &[ValueRef]) -> Result<ValueRef, Error> {
@@ -169,7 +169,7 @@ fn register(
     let var = Env::ensure(env, &name_string);
     var.borrow_mut().value = ValueRef::new(Value::Function(
         name_string,
-        Rc::new(BuiltinFunction { func: func }),
+        Rc::new(BuiltinFunction { func }),
     ));
 }
 

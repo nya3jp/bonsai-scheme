@@ -98,7 +98,7 @@ fn make_func_value(
         name.to_string(),
         Rc::new(LambdaFunction {
             env: env.clone(),
-            params: params,
+            params,
             body: body.to_vec(),
         }),
     )))
@@ -114,7 +114,7 @@ fn form_define(env: &Rc<RefCell<Env>>, exprs: &[ValueRef]) -> Result<ValueRef, E
         }
         let value = Env::evaluate(env, &exprs[1])?;
         let var = Env::ensure(env, &name);
-        (*var).borrow_mut().value = value.clone();
+        (*var).borrow_mut().value = value;
         return Ok(ValueRef::new(Value::Undef));
     }
 
@@ -122,7 +122,7 @@ fn form_define(env: &Rc<RefCell<Env>>, exprs: &[ValueRef]) -> Result<ValueRef, E
     let name = car.as_symbol()?;
     let func_value = make_func_value(env, &name, &cdr, &exprs[1..])?;
     let var = Env::ensure(env, &name);
-    (*var).borrow_mut().value = func_value.clone();
+    (*var).borrow_mut().value = func_value;
     Ok(ValueRef::new(Value::Undef))
 }
 
@@ -196,7 +196,7 @@ fn form_set(env: &Rc<RefCell<Env>>, exprs: &[ValueRef]) -> Result<ValueRef, Erro
     let name = exprs[0].as_symbol()?;
     let value = Env::evaluate(env, &exprs[1])?;
     let var = Env::lookup_ref(env, &name).ok_or(Error::new("set!: Name not found".into()))?;
-    (*var).borrow_mut().value = value.clone();
+    (*var).borrow_mut().value = value;
     Ok(ValueRef::new(Value::Undef))
 }
 

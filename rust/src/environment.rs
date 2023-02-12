@@ -42,7 +42,7 @@ impl Env {
 
     pub fn new(parent: Option<Rc<RefCell<Env>>>) -> Rc<RefCell<Env>> {
         Rc::new(RefCell::new(Env {
-            parent: parent,
+            parent,
             vars: HashMap::new(),
         }))
     }
@@ -80,13 +80,13 @@ impl Env {
             &Value::Null => Ok(expr.clone()),
             &Value::Boolean(_) => Ok(expr.clone()),
             &Value::Integer(_) => Ok(expr.clone()),
-            &Value::Symbol(ref name) => {
+            Value::Symbol(name) => {
                 Env::lookup(env, name).ok_or(Error::new(format!("Not found: {}", name)))
             }
-            &Value::Pair(ref car, ref cdr) => {
+            Value::Pair(car, cdr) => {
                 {
                     let rr = car.borrow();
-                    if let &Value::Symbol(ref name) = &*rr {
+                    if let Value::Symbol(name) = &*rr {
                         if let Some(form) = forms::lookup(name) {
                             return form.apply(env, cdr.to_native_list()?.as_slice());
                         }

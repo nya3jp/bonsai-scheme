@@ -23,15 +23,15 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
         static ref NUM_RE: Regex = Regex::new(r"^-?[0-9]+$").unwrap();
     }
 
-    if code.starts_with("'") {
+    if code.starts_with('\'') {
         let (value, next_code) = parse_value(&code[1..])?;
         return Ok((make_quote(value), next_code));
     }
 
-    if code.starts_with("(") {
+    if code.starts_with('(') {
         let (values, next_code) = parse_list(&code[1..])?;
         let next_code = parse_skip(next_code);
-        if !next_code.starts_with(")") {
+        if !next_code.starts_with(')') {
             return Err("Parse error".to_string());
         }
         return Ok((
@@ -61,7 +61,7 @@ fn parse_list(code: &str) -> Result<(Vec<ValueRef>, &str), String> {
     let mut code = code;
     loop {
         code = parse_skip(code);
-        if code.is_empty() || code.starts_with(")") {
+        if code.is_empty() || code.starts_with(')') {
             break;
         }
         let (value, next_code) = parse_value(code)?;
