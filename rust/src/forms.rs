@@ -23,14 +23,11 @@ fn form_quote(_: &Rc<RefCell<Env>>, exprs: &[ValueRef]) -> Result<ValueRef, Erro
 }
 
 fn form_begin(env: &Rc<RefCell<Env>>, exprs: &[ValueRef]) -> Result<ValueRef, Error> {
-    let mut result = Ok(ValueRef::new(Value::Undef));
+    let mut result = ValueRef::new(Value::Undef);
     for expr in exprs.iter() {
-        result = Env::evaluate(env, expr);
-        if let Err(_) = result {
-            return result;
-        }
+        result = Env::evaluate(env, expr)?;
     }
-    result
+    Ok(result)
 }
 
 fn form_if(env: &Rc<RefCell<Env>>, exprs: &[ValueRef]) -> Result<ValueRef, Error> {

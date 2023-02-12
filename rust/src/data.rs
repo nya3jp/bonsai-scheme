@@ -108,11 +108,7 @@ impl ValueRef {
 
     pub fn bool(&self) -> bool {
         let r = self.borrow();
-        if let &Value::Boolean(false) = &*r {
-            false
-        } else {
-            true
-        }
+        !matches!(&*r, &Value::Boolean(false))
     }
 
     pub fn as_integer(&self) -> Result<i32, Error> {

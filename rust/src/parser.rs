@@ -23,13 +23,13 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
         static ref NUM_RE: Regex = Regex::new(r"^-?[0-9]+$").unwrap();
     }
 
-    if code.starts_with('\'') {
-        let (value, next_code) = parse_value(&code[1..])?;
+    if let Some(rest_code) = code.strip_prefix('\'') {
+        let (value, next_code) = parse_value(rest_code)?;
         return Ok((make_quote(value), next_code));
     }
 
-    if code.starts_with('(') {
-        let (values, next_code) = parse_list(&code[1..])?;
+    if let Some(rest_code) = code.strip_prefix('(') {
+        let (values, next_code) = parse_list(rest_code)?;
         let next_code = parse_skip(next_code);
         if !next_code.starts_with(')') {
             return Err("Parse error".to_string());
