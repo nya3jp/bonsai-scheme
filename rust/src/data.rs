@@ -30,11 +30,11 @@ pub enum Value {
 impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (&Value::Undef, &Value::Undef) => true,
-            (&Value::Boolean(a), &Value::Boolean(b)) => a == b,
-            (&Value::Integer(a), &Value::Integer(b)) => a == b,
+            (Value::Undef, Value::Undef) => true,
+            (Value::Boolean(a), Value::Boolean(b)) => a == b,
+            (Value::Integer(a), Value::Integer(b)) => a == b,
             (Value::Symbol(a), Value::Symbol(b)) => a == b,
-            (&Value::Null, &Value::Null) => true,
+            (Value::Null, Value::Null) => true,
             _ => false,
         }
     }
@@ -43,12 +43,12 @@ impl PartialEq for Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Value::Undef => write!(f, "#undef"),
-            &Value::Boolean(false) => write!(f, "#f"),
-            &Value::Boolean(true) => write!(f, "#t"),
-            &Value::Integer(i) => write!(f, "{}", i),
+            Value::Undef => write!(f, "#undef"),
+            Value::Boolean(false) => write!(f, "#f"),
+            Value::Boolean(true) => write!(f, "#t"),
+            Value::Integer(i) => write!(f, "{}", i),
             Value::Symbol(name) => write!(f, "{}", name),
-            &Value::Null => write!(f, "()"),
+            Value::Null => write!(f, "()"),
             Value::Pair(car, cdr) => write!(f, "({} . {})", car, cdr),
             Value::Function(name, _) => write!(f, "{}", name),
         }
@@ -120,8 +120,8 @@ impl ValueRef {
 
     pub fn as_integer(&self) -> Result<i32> {
         let r = self.borrow();
-        if let &Value::Integer(i) = &*r {
-            Ok(i)
+        if let Value::Integer(i) = &*r {
+            Ok(*i)
         } else {
             bail!("Not an integer");
         }
