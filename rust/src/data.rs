@@ -11,6 +11,12 @@ pub trait Function {
     fn apply(&self, args: &[ValueRef]) -> Result<ValueRef>;
 }
 
+impl<T: Fn(&[ValueRef]) -> Result<ValueRef>> Function for T {
+    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef> {
+        self(args)
+    }
+}
+
 pub enum Value {
     Undef,
     Boolean(bool),

@@ -5,7 +5,6 @@ use anyhow::anyhow;
 use anyhow::bail;
 use anyhow::Result;
 
-use crate::data::Function;
 use crate::data::Value;
 use crate::data::ValueRef;
 use crate::environment::Env;
@@ -152,17 +151,6 @@ fn builtin_eq_check(args: &[ValueRef]) -> Result<ValueRef> {
     Ok(ValueRef::new(Value::Boolean(lhs == rhs)))
 }
 
-// FIXME: Can we get rid of this struct and use Fn directly?
-struct BuiltinFunction {
-    func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef>,
-}
-
-impl Function for BuiltinFunction {
-    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef> {
-        (self.func)(args)
-    }
-}
-
 fn register(
     env: &Rc<RefCell<Env>>,
     name: &str,
@@ -170,10 +158,7 @@ fn register(
 ) {
     let name_string = name.to_string();
     let var = Env::ensure(env, &name_string);
-    var.borrow_mut().value = ValueRef::new(Value::Function(
-        name_string,
-        Rc::new(BuiltinFunction { func }),
-    ));
+    var.borrow_mut().value = ValueRef::new(Value::Function(name_string, Rc::new(func)));
 }
 
 pub fn install(env: &Rc<RefCell<Env>>) {
