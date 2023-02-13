@@ -62,7 +62,7 @@ impl fmt::Debug for Value {
 }
 
 pub struct ValueRef {
-    pub r: Rc<RefCell<Value>>,
+    r: Rc<RefCell<Value>>,
 }
 
 impl Clone for ValueRef {
