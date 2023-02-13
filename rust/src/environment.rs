@@ -2,10 +2,13 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use anyhow::anyhow;
+use anyhow::bail;
+use anyhow::Result;
+
 use crate::builtins;
 use crate::data::Value;
 use crate::data::ValueRef;
-use crate::error::Error;
 use crate::forms;
 
 pub struct Variable {
@@ -74,15 +77,13 @@ impl Env {
         }
     }
 
-    pub fn evaluate(env: &Rc<RefCell<Env>>, expr: &ValueRef) -> Result<ValueRef, Error> {
+    pub fn evaluate(env: &Rc<RefCell<Env>>, expr: &ValueRef) -> Result<ValueRef> {
         let r = expr.borrow();
         match &*r {
             &Value::Null => Ok(expr.clone()),
             &Value::Boolean(_) => Ok(expr.clone()),
             &Value::Integer(_) => Ok(expr.clone()),
-            Value::Symbol(name) => {
-                Env::lookup(env, name).ok_or(Error::new(format!("Not found: {}", name)))
-            }
+            Value::Symbol(name) => Env::lookup(env, name).ok_or(anyhow!("Not found: {}", name)),
             Value::Pair(car, cdr) => {
                 {
                     let rr = car.borrow();
@@ -100,7 +101,7 @@ impl Env {
                 }
                 func.apply(args.as_slice())
             }
-            _ => Err(Error::new("Evaluate failed".into())),
+            _ => bail!("Evaluate failed"),
         }
     }
 }

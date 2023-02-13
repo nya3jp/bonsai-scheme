@@ -12,7 +12,6 @@ use environment::Env;
 mod builtins;
 mod data;
 mod environment;
-mod error;
 mod forms;
 mod parser;
 
