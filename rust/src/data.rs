@@ -61,14 +61,9 @@ impl fmt::Debug for Value {
     }
 }
 
+#[derive(Clone)]
 pub struct ValueRef {
     r: Rc<RefCell<Value>>,
-}
-
-impl Clone for ValueRef {
-    fn clone(&self) -> Self {
-        ValueRef { r: self.r.clone() }
-    }
 }
 
 impl ValueRef {
