@@ -1,3 +1,7 @@
+use anyhow::anyhow;
+use anyhow::bail;
+use anyhow::Result;
+
 use crate::data::Value;
 use crate::data::ValueRef;
 use crate::regex::Regex;
@@ -17,7 +21,7 @@ fn parse_skip(code: &str) -> &str {
     }
 }
 
-fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
+fn parse_value(code: &str) -> Result<(ValueRef, &str)> {
     lazy_static! {
         static ref TOKEN_RE: Regex = Regex::new(r"^[^\s);]+").unwrap();
         static ref NUM_RE: Regex = Regex::new(r"^-?[0-9]+$").unwrap();
@@ -32,7 +36,7 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
         let (values, next_code) = parse_list(rest_code)?;
         let next_code = parse_skip(next_code);
         if !next_code.starts_with(')') {
-            return Err("Parse error".to_string());
+            bail!("Parse error");
         }
         return Ok((
             ValueRef::from_native_list(values.as_slice()),
@@ -40,11 +44,16 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
         ));
     }
 
-    let m = TOKEN_RE.find(code).ok_or("Malformed token".to_string())?;
+    let m = TOKEN_RE.find(code).ok_or(anyhow!("Malformed token"))?;
     let next_code = &code[m.end()..];
     let token = m.as_str();
     let value = if NUM_RE.find(token).is_some() {
-        Value::Integer(token.parse::<i32>().ok().ok_or("Malformed integer")?)
+        Value::Integer(
+            token
+                .parse::<i32>()
+                .ok()
+                .ok_or(anyhow!("Malformed integer"))?,
+        )
     } else if token == "#t" {
         Value::Boolean(true)
     } else if token == "#f" {
@@ -56,7 +65,7 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str), String> {
     Ok((ValueRef::new(value), next_code))
 }
 
-fn parse_list(code: &str) -> Result<(Vec<ValueRef>, &str), String> {
+fn parse_list(code: &str) -> Result<(Vec<ValueRef>, &str)> {
     let mut values = Vec::new();
     let mut code = code;
     loop {
@@ -71,11 +80,10 @@ fn parse_list(code: &str) -> Result<(Vec<ValueRef>, &str), String> {
     Ok((values, code))
 }
 
-pub fn parse(code: &str) -> Result<Vec<ValueRef>, String> {
+pub fn parse(code: &str) -> Result<Vec<ValueRef>> {
     let (values, excess_code) = parse_list(code)?;
-    if excess_code.is_empty() {
-        Ok(values)
-    } else {
-        Err("Extra code".to_string())
+    if !excess_code.is_empty() {
+        bail!("Extra code");
     }
+    Ok(values)
 }
