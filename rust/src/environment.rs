@@ -32,10 +32,14 @@ impl Env {
 
     pub fn ensure(self: &Rc<Self>, name: &str) -> Rc<ValueCell> {
         let mut vars = self.vars.borrow_mut();
-        if !vars.contains_key(name) {
-            vars.insert(name.to_owned(), Value::Null.into());
+        match vars.get(name) {
+            Some(cell) => cell.clone(),
+            None => {
+                let cell: Rc<ValueCell> = Value::Null.into();
+                vars.insert(name.to_owned(), cell.clone());
+                cell
+            }
         }
-        vars.get(name).unwrap().clone()
     }
 
     pub fn lookup(self: &Rc<Self>, name: &str) -> Option<Value> {
