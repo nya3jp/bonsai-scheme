@@ -151,27 +151,27 @@ fn builtin_eq_check(args: &[Value]) -> Result<Value> {
     Ok(Value::Boolean(lhs == rhs))
 }
 
-fn register(env: &Rc<Env>, name: &str, func: &'static dyn Fn(&[Value]) -> Result<Value>) {
-    env.ensure(name)
-        .set(Value::Function(Rc::new(name.to_owned()), Rc::new(func)));
-}
-
 pub fn install(env: &Rc<Env>) {
-    register(env, "print", &builtin_print);
-    register(env, "and", &builtin_and);
-    register(env, "or", &builtin_or);
-    register(env, "not", &builtin_not);
-    register(env, "=", &builtin_eq);
-    register(env, "<", &builtin_lt);
-    register(env, "<=", &builtin_lte);
-    register(env, ">", &builtin_gt);
-    register(env, ">=", &builtin_gte);
-    register(env, "+", &builtin_add);
-    register(env, "-", &builtin_sub);
-    register(env, "*", &builtin_mul);
-    register(env, "/", &builtin_div);
-    register(env, "eq?", &builtin_eq_check);
-    register(env, "cons", &builtin_cons);
-    register(env, "car", &builtin_car);
-    register(env, "cdr", &builtin_cdr);
+    for (name, func) in [
+        ("print", builtin_print as fn(&[Value]) -> _),
+        ("and", builtin_and),
+        ("or", builtin_or),
+        ("not", builtin_not),
+        ("=", builtin_eq),
+        ("<", builtin_lt),
+        ("<=", builtin_lte),
+        (">", builtin_gt),
+        (">=", builtin_gte),
+        ("+", builtin_add),
+        ("-", builtin_sub),
+        ("*", builtin_mul),
+        ("/", builtin_div),
+        ("eq?", builtin_eq_check),
+        ("cons", builtin_cons),
+        ("car", builtin_car),
+        ("cdr", builtin_cdr),
+    ] {
+        env.ensure(name)
+            .set(Value::Function(Rc::new(name.to_owned()), Rc::new(func)));
+    }
 }
