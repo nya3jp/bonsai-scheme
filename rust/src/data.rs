@@ -30,11 +30,9 @@ pub enum Value {
 
 impl Value {
     pub fn from_native_list(values: &[Value]) -> Value {
-        let mut list_value = Value::Null;
-        for value in values.iter().rev() {
-            list_value = Value::Pair(ValueRef::new(value.clone()), ValueRef::new(list_value));
-        }
-        list_value
+        values.into_iter().rfold(Value::Null, |list_value, elem_value| {
+            Value::Pair(ValueRef::new(elem_value.clone()), ValueRef::new(list_value))
+        })
     }
 
     pub fn to_native_list(&self) -> Result<Vec<Value>> {
