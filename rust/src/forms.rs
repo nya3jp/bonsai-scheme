@@ -72,7 +72,7 @@ impl Function for LambdaFunction {
             bail!("Wrong number of arguments");
         }
         let env = Env::new(Some(self.env.clone()));
-        for (param, arg) in self.params.iter().zip(args.into_iter()) {
+        for (param, arg) in self.params.iter().zip(args.iter()) {
             let var = env.ensure(param);
             var.set(arg.clone());
         }
@@ -108,7 +108,7 @@ fn form_define(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
             bail!("define: Excessive args");
         }
         let value = env.evaluate(&exprs[1])?;
-        let var = env.ensure(&name);
+        let var = env.ensure(name);
         var.set(value);
         return Ok(Value::Undef);
     }
@@ -136,7 +136,7 @@ fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         }
         let name = binding[0].as_symbol()?;
         let value = env.evaluate(&binding[1])?;
-        let var = let_env.ensure(&name);
+        let var = let_env.ensure(name);
         var.set(value.clone());
     }
     evaluate_body(&let_env, &exprs[1..])
@@ -154,7 +154,7 @@ fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         let parent_env = let_env.clone();
         let_env = Env::new(Some(let_env.clone()));
         let value = parent_env.evaluate(&binding[1])?;
-        let var = let_env.ensure(&name);
+        let var = let_env.ensure(name);
         var.set(value.clone());
     }
     evaluate_body(&let_env, &exprs[1..])
@@ -170,7 +170,7 @@ fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         }
         let name = binding[0].as_symbol()?;
         let value = let_env.evaluate(&binding[1])?;
-        let var = let_env.ensure(&name);
+        let var = let_env.ensure(name);
         var.set(value.clone());
     }
     evaluate_body(&let_env, &exprs[1..])
@@ -183,7 +183,7 @@ fn form_set(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let name = exprs[0].as_symbol()?;
     let value = env.evaluate(&exprs[1])?;
     let var = env
-        .lookup_ref(&name)
+        .lookup_ref(name)
         .ok_or(anyhow!("set!: Name not found"))?;
     var.set(value);
     Ok(Value::Undef)

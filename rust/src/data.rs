@@ -28,11 +28,9 @@ pub enum Value {
 
 impl Value {
     pub fn from_native_list(values: &[Value]) -> Value {
-        values
-            .into_iter()
-            .rfold(Value::Null, |list_value, elem_value| {
-                Value::Pair(elem_value.clone().into(), list_value.into())
-            })
+        values.iter().rfold(Value::Null, |list_value, elem_value| {
+            Value::Pair(elem_value.clone().into(), list_value.into())
+        })
     }
 
     pub fn to_native_list(&self) -> Result<Vec<Value>> {
