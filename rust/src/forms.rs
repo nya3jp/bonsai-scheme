@@ -51,7 +51,7 @@ fn form_cond(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
         let clause = expr.to_native_list()?;
         let test_expr = clause.first().ok_or(anyhow!("cond: Malformed condition"))?;
         let test = match test_expr.as_symbol() {
-            Ok(name) if name.as_str() == "else" => true,
+            Ok(name) if name == "else" => true,
             _ => Env::evaluate(env, test_expr)?.bool(),
         };
         if test {
@@ -87,10 +87,11 @@ fn make_func_value(
     params_value: &Value,
     body: &[Value],
 ) -> Result<Value> {
-    let mut params = vec![];
-    for param_value in params_value.to_native_list()?.into_iter() {
-        params.push(param_value.as_symbol()?);
-    }
+    let params: Vec<String> = params_value
+        .to_native_list()?
+        .into_iter()
+        .map(|value| Ok(value.as_symbol()?.to_owned()))
+        .collect::<Result<_>>()?;
     Ok(Value::Function(
         name.to_string(),
         Rc::new(LambdaFunction {
@@ -114,7 +115,7 @@ fn form_define(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
     }
 
     let (car, cdr) = target.as_pair()?;
-    let name = car.borrow().as_symbol()?;
+    let name = car.borrow().as_symbol()?.to_owned();
     let func_value = make_func_value(env, &name, &*cdr.borrow(), &exprs[1..])?;
     let var = Env::ensure(env, &name);
     *var.borrow_mut() = func_value;

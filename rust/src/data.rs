@@ -30,9 +30,11 @@ pub enum Value {
 
 impl Value {
     pub fn from_native_list(values: &[Value]) -> Value {
-        values.into_iter().rfold(Value::Null, |list_value, elem_value| {
-            Value::Pair(ValueRef::new(elem_value.clone()), ValueRef::new(list_value))
-        })
+        values
+            .into_iter()
+            .rfold(Value::Null, |list_value, elem_value| {
+                Value::Pair(ValueRef::new(elem_value.clone()), ValueRef::new(list_value))
+            })
     }
 
     pub fn to_native_list(&self) -> Result<Vec<Value>> {
@@ -65,25 +67,25 @@ impl Value {
         }
     }
 
-    pub fn as_symbol(&self) -> Result<String> {
+    pub fn as_symbol(&self) -> Result<&str> {
         if let Value::Symbol(name) = self {
-            Ok(name.clone())
+            Ok(name)
         } else {
             bail!("Not a symbol");
         }
     }
 
-    pub fn as_pair(&self) -> Result<(ValueRef, ValueRef)> {
+    pub fn as_pair(&self) -> Result<(&ValueRef, &ValueRef)> {
         if let Value::Pair(car, cdr) = self {
-            Ok((car.clone(), cdr.clone()))
+            Ok((car, cdr))
         } else {
             bail!("Not a pair");
         }
     }
 
-    pub fn as_function(&self) -> Result<(String, Rc<dyn Function>)> {
+    pub fn as_function(&self) -> Result<(&str, &Rc<dyn Function>)> {
         if let Value::Function(name, func) = self {
-            Ok((name.clone(), func.clone()))
+            Ok((name, func))
         } else {
             bail!("Not a function");
         }
