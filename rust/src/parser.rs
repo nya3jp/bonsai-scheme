@@ -39,7 +39,7 @@ fn parse_value(code: &str) -> Result<(Value, &str)> {
         if !next_code.starts_with(')') {
             bail!("Parse error");
         }
-        return Ok((Value::from_native_list(values.as_slice()), &next_code[1..]));
+        return Ok((Value::from_native_list(&values), &next_code[1..]));
     }
 
     let m = TOKEN_RE.find(code).ok_or(anyhow!("Malformed token"))?;

@@ -75,7 +75,7 @@ impl Function for LambdaFunction {
         for (param, arg) in self.params.iter().zip(args.iter()) {
             env.ensure(param).set(arg.clone());
         }
-        evaluate_body(&env, self.body.as_slice())
+        evaluate_body(&env, &self.body)
     }
 }
 

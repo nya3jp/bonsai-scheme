@@ -64,7 +64,7 @@ impl Env {
             Value::Pair(car, cdr) => {
                 if let Value::Symbol(name) = car.get() {
                     if let Some(form) = forms::lookup(&name) {
-                        return form(self, cdr.get().to_native_list()?.as_slice());
+                        return form(self, &cdr.get().to_native_list()?);
                     }
                 }
                 let value = self.evaluate(&car.get())?;
@@ -73,7 +73,7 @@ impl Env {
                 for expr in cdr.get().to_native_list()? {
                     args.push(self.evaluate(&expr)?);
                 }
-                func.apply(args.as_slice())
+                func.apply(&args)
             }
             _ => bail!("Evaluate failed"),
         }
