@@ -73,8 +73,8 @@ impl Env {
                 let value = self.evaluate(&*car.borrow())?;
                 let (_, func) = value.as_function()?;
                 let mut args = vec![];
-                for expr in cdr.borrow().to_native_list()?.iter() {
-                    args.push(self.evaluate(expr)?);
+                for expr in cdr.borrow().to_native_list()? {
+                    args.push(self.evaluate(&expr)?);
                 }
                 func.apply(args.as_slice())
             }

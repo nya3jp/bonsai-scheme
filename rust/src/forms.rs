@@ -10,7 +10,7 @@ use crate::environment::Env;
 
 fn evaluate_body(env: &Rc<Env>, body: &[Value]) -> Result<Value> {
     let mut value = Value::Undef;
-    for expr in body.iter() {
+    for expr in body {
         value = env.evaluate(expr)?;
     }
     Ok(value)
@@ -25,7 +25,7 @@ fn form_quote(_: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 
 fn form_begin(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let mut result = Value::Undef;
-    for expr in exprs.iter() {
+    for expr in exprs {
         result = env.evaluate(expr)?;
     }
     Ok(result)
@@ -46,7 +46,7 @@ fn form_if(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 }
 
 fn form_cond(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    for expr in exprs.iter() {
+    for expr in exprs {
         let clause = expr.to_native_list()?;
         let test_expr = clause.first().ok_or(anyhow!("cond: Malformed condition"))?;
         let test = match test_expr.as_symbol() {
@@ -72,7 +72,7 @@ impl Function for LambdaFunction {
             bail!("Wrong number of arguments");
         }
         let env = Env::new(Some(self.env.clone()));
-        for (param, arg) in self.params.iter().zip(args.iter()) {
+        for (param, arg) in self.params.iter().zip(args.into_iter()) {
             let var = env.ensure(param);
             *var.borrow_mut() = arg.clone();
         }
@@ -129,7 +129,7 @@ fn form_lambda(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let let_env = Env::new(Some(env.clone()));
     let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
-    for binding_value in bindings_value.to_native_list()?.iter() {
+    for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
         if binding.len() != 2 {
             bail!("let: Malformed binding");
@@ -145,7 +145,7 @@ fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let mut let_env = env.clone();
     let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
-    for binding_value in bindings_value.to_native_list()?.iter() {
+    for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
         if binding.len() != 2 {
             bail!("let: Malformed binding");
@@ -163,7 +163,7 @@ fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let let_env = Env::new(Some(env.clone()));
     let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
-    for binding_value in bindings_value.to_native_list()?.iter() {
+    for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
         if binding.len() != 2 {
             bail!("let: Malformed binding");

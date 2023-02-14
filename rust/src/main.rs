@@ -34,8 +34,8 @@ fn main() -> Result<ExitCode> {
     let code = std::io::read_to_string(file)?;
     let exprs = parser::parse(&code)?;
     let env = Env::new_top_level();
-    for expr in exprs.iter() {
-        if let Err(ref msg) = env.evaluate(expr) {
+    for expr in exprs {
+        if let Err(ref msg) = env.evaluate(&expr) {
             println!("ERROR: {}", msg);
             break;
         }

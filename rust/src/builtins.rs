@@ -17,7 +17,7 @@ fn builtin_print(args: &[Value]) -> Result<Value> {
 
 fn builtin_and(args: &[Value]) -> Result<Value> {
     let mut result = true;
-    for value in args.iter() {
+    for value in args {
         result &= value.bool();
     }
     Ok(Value::Boolean(result))
@@ -25,7 +25,7 @@ fn builtin_and(args: &[Value]) -> Result<Value> {
 
 fn builtin_or(args: &[Value]) -> Result<Value> {
     let mut result = false;
-    for value in args.iter() {
+    for value in args {
         result |= value.bool();
     }
     Ok(Value::Boolean(result))
@@ -107,7 +107,7 @@ fn builtin_gte(args: &[Value]) -> Result<Value> {
 
 fn builtin_add(args: &[Value]) -> Result<Value> {
     let mut result = 0;
-    for value in args.iter() {
+    for value in args {
         result += value.as_integer()?;
     }
     Ok(Value::Integer(result))
@@ -126,7 +126,7 @@ fn builtin_sub(args: &[Value]) -> Result<Value> {
 
 fn builtin_mul(args: &[Value]) -> Result<Value> {
     let mut result = 1;
-    for value in args.iter() {
+    for value in args {
         result *= value.as_integer()?;
     }
     Ok(Value::Integer(result))
