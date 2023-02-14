@@ -8,15 +8,16 @@ use anyhow::bail;
 use anyhow::Result;
 
 pub trait Function {
-    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef>;
+    fn apply(&self, args: &[Value]) -> Result<Value>;
 }
 
-impl<T: Fn(&[ValueRef]) -> Result<ValueRef>> Function for T {
-    fn apply(&self, args: &[ValueRef]) -> Result<ValueRef> {
+impl<T: Fn(&[Value]) -> Result<Value>> Function for T {
+    fn apply(&self, args: &[Value]) -> Result<Value> {
         self(args)
     }
 }
 
+#[derive(Clone)]
 pub enum Value {
     Undef,
     Boolean(bool),
@@ -25,6 +26,70 @@ pub enum Value {
     Null,
     Pair(ValueRef, ValueRef),
     Function(String, Rc<dyn Function>),
+}
+
+impl Value {
+    pub fn from_native_list(values: &[Value]) -> Value {
+        let mut list_value = Value::Null;
+        for value in values.iter().rev() {
+            list_value = Value::Pair(ValueRef::new(value.clone()), ValueRef::new(list_value));
+        }
+        list_value
+    }
+
+    pub fn to_native_list(&self) -> Result<Vec<Value>> {
+        let mut values = vec![];
+        let mut current = self.clone();
+        loop {
+            current = {
+                match current {
+                    Value::Null => break,
+                    Value::Pair(car, cdr) => {
+                        values.push(car.borrow().clone());
+                        cdr.borrow().clone()
+                    }
+                    _ => bail!("Not a list"),
+                }
+            };
+        }
+        Ok(values)
+    }
+
+    pub fn bool(&self) -> bool {
+        !matches!(self, Value::Boolean(false))
+    }
+
+    pub fn as_integer(&self) -> Result<i32> {
+        if let Value::Integer(i) = self {
+            Ok(*i)
+        } else {
+            bail!("Not an integer");
+        }
+    }
+
+    pub fn as_symbol(&self) -> Result<String> {
+        if let Value::Symbol(name) = self {
+            Ok(name.clone())
+        } else {
+            bail!("Not a symbol");
+        }
+    }
+
+    pub fn as_pair(&self) -> Result<(ValueRef, ValueRef)> {
+        if let Value::Pair(car, cdr) = self {
+            Ok((car.clone(), cdr.clone()))
+        } else {
+            bail!("Not a pair");
+        }
+    }
+
+    pub fn as_function(&self) -> Result<(String, Rc<dyn Function>)> {
+        if let Value::Function(name, func) = self {
+            Ok((name.clone(), func.clone()))
+        } else {
+            bail!("Not a function");
+        }
+    }
 }
 
 impl PartialEq for Value {
@@ -79,74 +144,6 @@ impl ValueRef {
 
     pub fn borrow_mut(&self) -> RefMut<Value> {
         self.r.borrow_mut()
-    }
-
-    pub fn from_native_list(values: &[ValueRef]) -> ValueRef {
-        let mut list_value = ValueRef::new(Value::Null);
-        for value in values.iter().rev() {
-            list_value = ValueRef::new(Value::Pair(value.clone(), list_value));
-        }
-        list_value
-    }
-
-    pub fn to_native_list(&self) -> Result<Vec<ValueRef>> {
-        let mut values = vec![];
-        let mut current = self.clone();
-        loop {
-            current = {
-                let r = current.borrow();
-                match &*r {
-                    &Value::Null => break,
-                    Value::Pair(car, cdr) => {
-                        values.push(car.clone());
-                        cdr.clone()
-                    }
-                    _ => bail!("Not a list"),
-                }
-            };
-        }
-        Ok(values)
-    }
-
-    pub fn bool(&self) -> bool {
-        let r = self.borrow();
-        !matches!(&*r, &Value::Boolean(false))
-    }
-
-    pub fn as_integer(&self) -> Result<i32> {
-        let r = self.borrow();
-        if let Value::Integer(i) = &*r {
-            Ok(*i)
-        } else {
-            bail!("Not an integer");
-        }
-    }
-
-    pub fn as_symbol(&self) -> Result<String> {
-        let r = self.borrow();
-        if let Value::Symbol(name) = &*r {
-            Ok(name.clone())
-        } else {
-            bail!("Not a symbol");
-        }
-    }
-
-    pub fn as_pair(&self) -> Result<(ValueRef, ValueRef)> {
-        let r = self.borrow();
-        if let Value::Pair(car, cdr) = &*r {
-            Ok((car.clone(), cdr.clone()))
-        } else {
-            bail!("Not a pair");
-        }
-    }
-
-    pub fn as_function(&self) -> Result<(String, Rc<dyn Function>)> {
-        let r = self.borrow();
-        if let Value::Function(name, func) = &*r {
-            Ok((name.clone(), func.clone()))
-        } else {
-            bail!("Not a function");
-        }
     }
 }
 

@@ -3,11 +3,10 @@ use anyhow::bail;
 use anyhow::Result;
 
 use crate::data::Value;
-use crate::data::ValueRef;
 use crate::regex::Regex;
 
-fn make_quote(value: ValueRef) -> ValueRef {
-    ValueRef::from_native_list(&[ValueRef::new(Value::Symbol("quote".to_string())), value])
+fn make_quote(value: Value) -> Value {
+    Value::from_native_list(&[Value::Symbol("quote".to_string()), value])
 }
 
 fn parse_skip(code: &str) -> &str {
@@ -21,7 +20,7 @@ fn parse_skip(code: &str) -> &str {
     }
 }
 
-fn parse_value(code: &str) -> Result<(ValueRef, &str)> {
+fn parse_value(code: &str) -> Result<(Value, &str)> {
     lazy_static! {
         static ref TOKEN_RE: Regex = Regex::new(r"^[^\s);]+").unwrap();
         static ref NUM_RE: Regex = Regex::new(r"^-?[0-9]+$").unwrap();
@@ -38,10 +37,7 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str)> {
         if !next_code.starts_with(')') {
             bail!("Parse error");
         }
-        return Ok((
-            ValueRef::from_native_list(values.as_slice()),
-            &next_code[1..],
-        ));
+        return Ok((Value::from_native_list(values.as_slice()), &next_code[1..]));
     }
 
     let m = TOKEN_RE.find(code).ok_or(anyhow!("Malformed token"))?;
@@ -62,10 +58,10 @@ fn parse_value(code: &str) -> Result<(ValueRef, &str)> {
         Value::Symbol(token.to_string())
     };
 
-    Ok((ValueRef::new(value), next_code))
+    Ok((value, next_code))
 }
 
-fn parse_list(code: &str) -> Result<(Vec<ValueRef>, &str)> {
+fn parse_list(code: &str) -> Result<(Vec<Value>, &str)> {
     let mut values = Vec::new();
     let mut code = code;
     loop {
@@ -80,7 +76,7 @@ fn parse_list(code: &str) -> Result<(Vec<ValueRef>, &str)> {
     Ok((values, code))
 }
 
-pub fn parse(code: &str) -> Result<Vec<ValueRef>> {
+pub fn parse(code: &str) -> Result<Vec<Value>> {
     let (values, excess_code) = parse_list(code)?;
     if !excess_code.is_empty() {
         bail!("Extra code");

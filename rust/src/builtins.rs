@@ -9,111 +9,116 @@ use crate::data::Value;
 use crate::data::ValueRef;
 use crate::environment::Env;
 
-fn builtin_print(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_print(args: &[Value]) -> Result<Value> {
     if args.len() != 1 {
         bail!("print: Invalid number of arguments");
     }
-    println!("{}", *args[0].borrow());
-    Ok(ValueRef::new(Value::Undef))
+    println!("{}", args[0]);
+    Ok(Value::Undef)
 }
 
-fn builtin_and(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_and(args: &[Value]) -> Result<Value> {
     let mut result = true;
     for value in args.iter() {
         result &= value.bool();
     }
-    Ok(ValueRef::new(Value::Boolean(result)))
+    Ok(Value::Boolean(result))
 }
 
-fn builtin_or(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_or(args: &[Value]) -> Result<Value> {
     let mut result = false;
     for value in args.iter() {
         result |= value.bool();
     }
-    Ok(ValueRef::new(Value::Boolean(result)))
+    Ok(Value::Boolean(result))
 }
 
-fn builtin_not(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_not(args: &[Value]) -> Result<Value> {
     if args.len() != 1 {
         bail!("not: Invalid number of arguments");
     }
     let value = &args[0];
-    Ok(ValueRef::new(Value::Boolean(!value.bool())))
+    Ok(Value::Boolean(!value.bool()))
 }
 
-fn builtin_cons(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_cons(args: &[Value]) -> Result<Value> {
     if args.len() != 2 {
         bail!("cons: Invalid number of arguments");
     }
     let (car, cdr) = (&args[0], &args[1]);
-    Ok(ValueRef::new(Value::Pair(car.clone(), cdr.clone())))
+    Ok(Value::Pair(
+        ValueRef::new(car.clone()),
+        ValueRef::new(cdr.clone()),
+    ))
 }
 
-fn builtin_car(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_car(args: &[Value]) -> Result<Value> {
     if args.len() != 1 {
         bail!("car: Invalid number of arguments");
     }
     let (car, _) = args[0].as_pair()?;
-    Ok(car)
+    let value = car.borrow().clone();
+    Ok(value)
 }
 
-fn builtin_cdr(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_cdr(args: &[Value]) -> Result<Value> {
     if args.len() != 1 {
         bail!("cdr: Invalid number of arguments");
     }
     let (_, cdr) = args[0].as_pair()?;
-    Ok(cdr)
+    let value = cdr.borrow().clone();
+    Ok(value)
 }
 
-fn builtin_eq(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_eq(args: &[Value]) -> Result<Value> {
     if args.len() != 2 {
         bail!("=: Invalid number of arguments");
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
-    Ok(ValueRef::new(Value::Boolean(a == b)))
+    Ok(Value::Boolean(a == b))
 }
 
-fn builtin_lt(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_lt(args: &[Value]) -> Result<Value> {
     if args.len() != 2 {
         bail!("<: Invalid number of arguments");
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
-    Ok(ValueRef::new(Value::Boolean(a < b)))
+    Ok(Value::Boolean(a < b))
 }
 
-fn builtin_lte(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_lte(args: &[Value]) -> Result<Value> {
     if args.len() != 2 {
         bail!("<=: Invalid number of arguments");
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
-    Ok(ValueRef::new(Value::Boolean(a <= b)))
+    Ok(Value::Boolean(a <= b))
 }
 
-fn builtin_gt(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_gt(args: &[Value]) -> Result<Value> {
     if args.len() != 2 {
         bail!(">: Invalid number of arguments");
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
-    Ok(ValueRef::new(Value::Boolean(a > b)))
+    Ok(Value::Boolean(a > b))
 }
 
-fn builtin_gte(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_gte(args: &[Value]) -> Result<Value> {
     if args.len() != 2 {
         bail!(">=: Invalid number of arguments");
     }
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
-    Ok(ValueRef::new(Value::Boolean(a >= b)))
+    Ok(Value::Boolean(a >= b))
 }
 
-fn builtin_add(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_add(args: &[Value]) -> Result<Value> {
     let mut result = 0;
     for value in args.iter() {
         result += value.as_integer()?;
     }
-    Ok(ValueRef::new(Value::Integer(result)))
+    Ok(Value::Integer(result))
 }
 
-fn builtin_sub(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_sub(args: &[Value]) -> Result<Value> {
     let mut result = args
         .first()
         .ok_or(anyhow!("-: Invalid number of arguments"))?
@@ -121,18 +126,18 @@ fn builtin_sub(args: &[ValueRef]) -> Result<ValueRef> {
     for value in &args[1..] {
         result -= value.as_integer()?;
     }
-    Ok(ValueRef::new(Value::Integer(result)))
+    Ok(Value::Integer(result))
 }
 
-fn builtin_mul(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_mul(args: &[Value]) -> Result<Value> {
     let mut result = 1;
     for value in args.iter() {
         result *= value.as_integer()?;
     }
-    Ok(ValueRef::new(Value::Integer(result)))
+    Ok(Value::Integer(result))
 }
 
-fn builtin_div(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_div(args: &[Value]) -> Result<Value> {
     let mut result = args
         .first()
         .ok_or(anyhow!("/: Invalid number of arguments"))?
@@ -140,25 +145,21 @@ fn builtin_div(args: &[ValueRef]) -> Result<ValueRef> {
     for value in &args[1..] {
         result /= value.as_integer()?;
     }
-    Ok(ValueRef::new(Value::Integer(result)))
+    Ok(Value::Integer(result))
 }
 
-fn builtin_eq_check(args: &[ValueRef]) -> Result<ValueRef> {
+fn builtin_eq_check(args: &[Value]) -> Result<Value> {
     if args.len() != 2 {
         bail!(">: Invalid number of arguments");
     }
     let (lhs, rhs) = (&args[0], &args[1]);
-    Ok(ValueRef::new(Value::Boolean(lhs == rhs)))
+    Ok(Value::Boolean(lhs == rhs))
 }
 
-fn register(
-    env: &Rc<RefCell<Env>>,
-    name: &str,
-    func: &'static dyn Fn(&[ValueRef]) -> Result<ValueRef>,
-) {
+fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static dyn Fn(&[Value]) -> Result<Value>) {
     let name_string = name.to_string();
     let var = Env::ensure(env, &name_string);
-    var.borrow_mut().value = ValueRef::new(Value::Function(name_string, Rc::new(func)));
+    *var.borrow_mut() = Value::Function(name_string, Rc::new(func));
 }
 
 pub fn install(env: &Rc<RefCell<Env>>) {
