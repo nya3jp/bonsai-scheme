@@ -20,10 +20,10 @@ pub enum Value {
     Undef,
     Boolean(bool),
     Integer(i32),
-    Symbol(String),
+    Symbol(Rc<String>),
     Null,
     Pair(Rc<ValueCell>, Rc<ValueCell>),
-    Function(String, Rc<dyn Function>),
+    Function(Rc<String>, Rc<dyn Function>),
 }
 
 impl Value {

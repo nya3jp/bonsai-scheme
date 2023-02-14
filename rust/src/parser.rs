@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use anyhow::anyhow;
 use anyhow::bail;
 use anyhow::Result;
@@ -6,7 +8,7 @@ use crate::data::Value;
 use crate::regex::Regex;
 
 fn make_quote(value: Value) -> Value {
-    Value::from_native_list(&[Value::Symbol("quote".to_string()), value])
+    Value::from_native_list(&[Value::Symbol(Rc::new("quote".to_string())), value])
 }
 
 fn parse_skip(code: &str) -> &str {
@@ -55,7 +57,7 @@ fn parse_value(code: &str) -> Result<(Value, &str)> {
     } else if token == "#f" {
         Value::Boolean(false)
     } else {
-        Value::Symbol(token.to_string())
+        Value::Symbol(Rc::new(token.to_string()))
     };
 
     Ok((value, next_code))

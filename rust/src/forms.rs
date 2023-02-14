@@ -92,7 +92,7 @@ fn make_func_value(
         .map(|value| Ok(value.as_symbol()?.to_owned()))
         .collect::<Result<_>>()?;
     Ok(Value::Function(
-        name.to_string(),
+        Rc::new(name.to_string()),
         Rc::new(LambdaFunction {
             env: env.clone(),
             params,
