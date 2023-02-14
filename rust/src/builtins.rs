@@ -152,7 +152,7 @@ fn builtin_eq_check(args: &[Value]) -> Result<Value> {
 }
 
 fn register(env: &Rc<Env>, name: &str, func: &'static dyn Fn(&[Value]) -> Result<Value>) {
-    let name = name.to_string();
+    let name = name.to_owned();
     let var = env.ensure(&name);
     var.set(Value::Function(Rc::new(name), Rc::new(func)));
 }

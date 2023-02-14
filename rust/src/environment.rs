@@ -33,7 +33,7 @@ impl Env {
     pub fn ensure(self: &Rc<Self>, name: &str) -> Rc<ValueCell> {
         let mut vars = self.vars.borrow_mut();
         if !vars.contains_key(name) {
-            vars.insert(name.to_string(), Value::Null.into());
+            vars.insert(name.to_owned(), Value::Null.into());
         }
         vars.get(name).unwrap().clone()
     }

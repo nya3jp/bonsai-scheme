@@ -8,7 +8,7 @@ use crate::data::Value;
 use crate::regex::Regex;
 
 fn make_quote(value: Value) -> Value {
-    Value::from_native_list(&[Value::Symbol(Rc::new("quote".to_string())), value])
+    Value::from_native_list(&[Value::Symbol(Rc::new("quote".to_owned())), value])
 }
 
 fn parse_skip(code: &str) -> &str {
@@ -57,7 +57,7 @@ fn parse_value(code: &str) -> Result<(Value, &str)> {
     } else if token == "#f" {
         Value::Boolean(false)
     } else {
-        Value::Symbol(Rc::new(token.to_string()))
+        Value::Symbol(Rc::new(token.to_owned()))
     };
 
     Ok((value, next_code))
