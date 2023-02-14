@@ -12,66 +12,69 @@ use crate::data::ValueRef;
 use crate::forms;
 
 pub struct Env {
-    parent: Option<Rc<RefCell<Env>>>,
-    vars: HashMap<String, ValueRef>,
+    parent: Option<Rc<Env>>,
+    vars: RefCell<HashMap<String, ValueRef>>,
 }
 
 impl Env {
-    pub fn new_top_level() -> Rc<RefCell<Env>> {
+    pub fn new_top_level() -> Rc<Self> {
         let env = Env::new(None);
         builtins::install(&env);
         env
     }
 
-    pub fn new(parent: Option<Rc<RefCell<Env>>>) -> Rc<RefCell<Env>> {
-        Rc::new(RefCell::new(Env {
+    pub fn new(parent: Option<Rc<Self>>) -> Rc<Self> {
+        Rc::new(Env {
             parent,
-            vars: HashMap::new(),
-        }))
+            vars: Default::default(),
+        })
     }
 
-    pub fn ensure(env: &Rc<RefCell<Env>>, name: &str) -> ValueRef {
-        let mut env_ref = env.borrow_mut();
-        if !env_ref.vars.contains_key(name) {
-            env_ref.vars.insert(name.to_string(), Value::Null.into());
+    pub fn ensure(self: &Rc<Self>, name: &str) -> ValueRef {
+        let mut vars = self.vars.borrow_mut();
+        if !vars.contains_key(name) {
+            vars.insert(name.to_string(), Value::Null.into());
         }
-        env_ref.vars.get(name).unwrap().clone()
+        vars.get(name).unwrap().clone()
     }
 
-    pub fn lookup(env: &Rc<RefCell<Env>>, name: &str) -> Option<Value> {
-        Env::lookup_ref(env, name).map(|r| r.borrow().clone())
+    pub fn lookup(self: &Rc<Self>, name: &str) -> Option<Value> {
+        self.lookup_ref(name).map(|r| r.borrow().clone())
     }
 
-    pub fn lookup_ref(env: &Rc<RefCell<Env>>, name: &str) -> Option<ValueRef> {
-        if env.borrow().vars.contains_key(name) {
-            Some(env.borrow().vars.get(name).unwrap().clone())
-        } else if let Some(ref parent) = env.borrow().parent {
-            Env::lookup_ref(parent, name)
-        } else {
-            None
+    pub fn lookup_ref(self: &Rc<Self>, name: &str) -> Option<ValueRef> {
+        {
+            let vars = self.vars.borrow();
+            if let Some(r) = vars.get(name) {
+                return Some(r.clone());
+            }
         }
+        if let Some(parent) = &self.parent {
+            return parent.lookup_ref(name);
+        }
+        None
     }
 
-    pub fn evaluate(env: &Rc<RefCell<Env>>, expr: &Value) -> Result<Value> {
+    pub fn evaluate(self: &Rc<Self>, expr: &Value) -> Result<Value> {
         match expr {
             Value::Null => Ok(expr.clone()),
             Value::Boolean(_) => Ok(expr.clone()),
             Value::Integer(_) => Ok(expr.clone()),
-            Value::Symbol(name) => Env::lookup(env, name).ok_or(anyhow!("Not found: {}", name)),
+            Value::Symbol(name) => self.lookup(name).ok_or(anyhow!("Not found: {}", name)),
             Value::Pair(car, cdr) => {
                 {
                     let rr = car.borrow();
                     if let Value::Symbol(name) = &*rr {
                         if let Some(form) = forms::lookup(name) {
-                            return form.apply(env, cdr.borrow().to_native_list()?.as_slice());
+                            return form.apply(self, cdr.borrow().to_native_list()?.as_slice());
                         }
                     }
                 }
-                let value = Env::evaluate(env, &*car.borrow())?;
+                let value = self.evaluate(&*car.borrow())?;
                 let (_, func) = value.as_function()?;
                 let mut args = vec![];
                 for expr in cdr.borrow().to_native_list()?.iter() {
-                    args.push(Env::evaluate(env, expr)?);
+                    args.push(self.evaluate(expr)?);
                 }
                 func.apply(args.as_slice())
             }

@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use anyhow::anyhow;
@@ -9,50 +8,50 @@ use crate::data::Function;
 use crate::data::Value;
 use crate::environment::Env;
 
-fn evaluate_body(env: &Rc<RefCell<Env>>, body: &[Value]) -> Result<Value> {
+fn evaluate_body(env: &Rc<Env>, body: &[Value]) -> Result<Value> {
     let mut value = Value::Undef;
     for expr in body.iter() {
-        value = Env::evaluate(env, expr)?;
+        value = env.evaluate(expr)?;
     }
     Ok(value)
 }
 
-fn form_quote(_: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_quote(_: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     if exprs.len() != 1 {
         bail!("args");
     }
     Ok(exprs[0].clone())
 }
 
-fn form_begin(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_begin(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let mut result = Value::Undef;
     for expr in exprs.iter() {
-        result = Env::evaluate(env, expr)?;
+        result = env.evaluate(expr)?;
     }
     Ok(result)
 }
 
-fn form_if(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_if(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     if !(exprs.len() == 2 || exprs.len() == 3) {
         bail!("args");
     }
-    let test = Env::evaluate(env, &exprs[0])?.bool();
+    let test = env.evaluate(&exprs[0])?.bool();
     if test {
-        Env::evaluate(env, &exprs[1])
+        env.evaluate(&exprs[1])
     } else if exprs.len() == 3 {
-        Env::evaluate(env, &exprs[2])
+        env.evaluate(&exprs[2])
     } else {
         Ok(Value::Undef)
     }
 }
 
-fn form_cond(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_cond(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     for expr in exprs.iter() {
         let clause = expr.to_native_list()?;
         let test_expr = clause.first().ok_or(anyhow!("cond: Malformed condition"))?;
         let test = match test_expr.as_symbol() {
             Ok(name) if name == "else" => true,
-            _ => Env::evaluate(env, test_expr)?.bool(),
+            _ => env.evaluate(test_expr)?.bool(),
         };
         if test {
             return evaluate_body(env, &clause[1..]);
@@ -62,7 +61,7 @@ fn form_cond(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
 }
 
 struct LambdaFunction {
-    env: Rc<RefCell<Env>>,
+    env: Rc<Env>,
     params: Vec<String>,
     body: Vec<Value>,
 }
@@ -74,7 +73,7 @@ impl Function for LambdaFunction {
         }
         let env = Env::new(Some(self.env.clone()));
         for (param, arg) in self.params.iter().zip(args.iter()) {
-            let var = Env::ensure(&env, param);
+            let var = env.ensure(param);
             *var.borrow_mut() = arg.clone();
         }
         evaluate_body(&env, self.body.as_slice())
@@ -82,7 +81,7 @@ impl Function for LambdaFunction {
 }
 
 fn make_func_value(
-    env: &Rc<RefCell<Env>>,
+    env: &Rc<Env>,
     name: &str,
     params_value: &Value,
     body: &[Value],
@@ -102,14 +101,14 @@ fn make_func_value(
     ))
 }
 
-fn form_define(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_define(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let target = exprs.get(0).ok_or(anyhow!("define: Malformed args"))?;
     if let Ok(name) = target.as_symbol() {
         if exprs.len() != 2 {
             bail!("define: Excessive args");
         }
-        let value = Env::evaluate(env, &exprs[1])?;
-        let var = Env::ensure(env, &name);
+        let value = env.evaluate(&exprs[1])?;
+        let var = env.ensure(&name);
         *var.borrow_mut() = value;
         return Ok(Value::Undef);
     }
@@ -117,17 +116,17 @@ fn form_define(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
     let (car, cdr) = target.as_pair()?;
     let name = car.borrow().as_symbol()?.to_owned();
     let func_value = make_func_value(env, &name, &*cdr.borrow(), &exprs[1..])?;
-    let var = Env::ensure(env, &name);
+    let var = env.ensure(&name);
     *var.borrow_mut() = func_value;
     Ok(Value::Undef)
 }
 
-fn form_lambda(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_lambda(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let params_value = exprs.get(0).ok_or(anyhow!("lambda: Malformed args"))?;
     make_func_value(env, "<lambda>", params_value, &exprs[1..])
 }
 
-fn form_let(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let let_env = Env::new(Some(env.clone()));
     let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()?.iter() {
@@ -136,14 +135,14 @@ fn form_let(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
             bail!("let: Malformed binding");
         }
         let name = binding[0].as_symbol()?;
-        let value = Env::evaluate(env, &binding[1])?;
-        let var = Env::ensure(&let_env, &name);
+        let value = env.evaluate(&binding[1])?;
+        let var = let_env.ensure(&name);
         *var.borrow_mut() = value.clone();
     }
     evaluate_body(&let_env, &exprs[1..])
 }
 
-fn form_let_star(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let mut let_env = env.clone();
     let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()?.iter() {
@@ -154,14 +153,14 @@ fn form_let_star(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
         let name = binding[0].as_symbol()?;
         let parent_env = let_env.clone();
         let_env = Env::new(Some(let_env.clone()));
-        let value = Env::evaluate(&parent_env, &binding[1])?;
-        let var = Env::ensure(&let_env, &name);
+        let value = parent_env.evaluate(&binding[1])?;
+        let var = let_env.ensure(&name);
         *var.borrow_mut() = value.clone();
     }
     evaluate_body(&let_env, &exprs[1..])
 }
 
-fn form_letrec(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let let_env = Env::new(Some(env.clone()));
     let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()?.iter() {
@@ -170,30 +169,32 @@ fn form_letrec(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
             bail!("let: Malformed binding");
         }
         let name = binding[0].as_symbol()?;
-        let value = Env::evaluate(&let_env, &binding[1])?;
-        let var = Env::ensure(&let_env, &name);
+        let value = let_env.evaluate(&binding[1])?;
+        let var = let_env.ensure(&name);
         *var.borrow_mut() = value.clone();
     }
     evaluate_body(&let_env, &exprs[1..])
 }
 
-fn form_set(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_set(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     if exprs.len() != 2 {
         bail!("set!: Invalid number of args");
     }
     let name = exprs[0].as_symbol()?;
-    let value = Env::evaluate(env, &exprs[1])?;
-    let var = Env::lookup_ref(env, &name).ok_or(anyhow!("set!: Name not found"))?;
+    let value = env.evaluate(&exprs[1])?;
+    let var = env
+        .lookup_ref(&name)
+        .ok_or(anyhow!("set!: Name not found"))?;
     *var.borrow_mut() = value;
     Ok(Value::Undef)
 }
 
-fn form_set_car(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_set_car(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     if exprs.len() != 2 {
         bail!("set!: Invalid number of args");
     }
-    let target = Env::evaluate(env, &exprs[0])?;
-    let value = Env::evaluate(env, &exprs[1])?;
+    let target = env.evaluate(&exprs[0])?;
+    let value = env.evaluate(&exprs[1])?;
     if let Value::Pair(car, _) = target {
         *car.borrow_mut() = value;
     } else {
@@ -202,12 +203,12 @@ fn form_set_car(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
     Ok(Value::Undef)
 }
 
-fn form_set_cdr(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+fn form_set_cdr(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     if exprs.len() != 2 {
         bail!("set!: Invalid number of args");
     }
-    let target = Env::evaluate(env, &exprs[0])?;
-    let value = Env::evaluate(env, &exprs[1])?;
+    let target = env.evaluate(&exprs[0])?;
+    let value = env.evaluate(&exprs[1])?;
     if let Value::Pair(_, cdr) = target {
         *cdr.borrow_mut() = value;
     } else {
@@ -218,11 +219,11 @@ fn form_set_cdr(env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
 
 // FIXME: Can we get rid of this struct and use Fn directly?
 pub struct Form {
-    func: &'static dyn Fn(&Rc<RefCell<Env>>, &[Value]) -> Result<Value>,
+    func: &'static dyn Fn(&Rc<Env>, &[Value]) -> Result<Value>,
 }
 
 impl Form {
-    pub fn apply(&self, env: &Rc<RefCell<Env>>, exprs: &[Value]) -> Result<Value> {
+    pub fn apply(&self, env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         (self.func)(env, exprs)
     }
 }

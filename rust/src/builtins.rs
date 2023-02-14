@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use anyhow::anyhow;
@@ -152,13 +151,13 @@ fn builtin_eq_check(args: &[Value]) -> Result<Value> {
     Ok(Value::Boolean(lhs == rhs))
 }
 
-fn register(env: &Rc<RefCell<Env>>, name: &str, func: &'static dyn Fn(&[Value]) -> Result<Value>) {
-    let name_string = name.to_string();
-    let var = Env::ensure(env, &name_string);
-    *var.borrow_mut() = Value::Function(name_string, Rc::new(func));
+fn register(env: &Rc<Env>, name: &str, func: &'static dyn Fn(&[Value]) -> Result<Value>) {
+    let name = name.to_string();
+    let var = env.ensure(&name);
+    *var.borrow_mut() = Value::Function(name, Rc::new(func));
 }
 
-pub fn install(env: &Rc<RefCell<Env>>) {
+pub fn install(env: &Rc<Env>) {
     register(env, "print", &builtin_print);
     register(env, "and", &builtin_and);
     register(env, "or", &builtin_or);

@@ -35,7 +35,7 @@ fn main() -> Result<ExitCode> {
     let exprs = parser::parse(&code)?;
     let env = Env::new_top_level();
     for expr in exprs.iter() {
-        if let Err(ref msg) = Env::evaluate(&env, expr) {
+        if let Err(ref msg) = env.evaluate(expr) {
             println!("ERROR: {}", msg);
             break;
         }
