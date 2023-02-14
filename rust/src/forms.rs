@@ -217,37 +217,22 @@ fn form_set_cdr(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     Ok(Value::Undef)
 }
 
-// FIXME: Can we get rid of this struct and use Fn directly?
-pub struct Form {
-    func: &'static dyn Fn(&Rc<Env>, &[Value]) -> Result<Value>,
-}
-
-impl Form {
-    pub fn apply(&self, env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-        (self.func)(env, exprs)
-    }
-}
+pub type Form = fn(&Rc<Env>, &[Value]) -> Result<Value>;
 
 pub fn lookup(name: &str) -> Option<Form> {
     match name {
-        "quote" => Some(Form { func: &form_quote }),
-        "begin" => Some(Form { func: &form_begin }),
-        "if" => Some(Form { func: &form_if }),
-        "cond" => Some(Form { func: &form_cond }),
-        "define" => Some(Form { func: &form_define }),
-        "lambda" => Some(Form { func: &form_lambda }),
-        "let" => Some(Form { func: &form_let }),
-        "let*" => Some(Form {
-            func: &form_let_star,
-        }),
-        "letrec" => Some(Form { func: &form_letrec }),
-        "set!" => Some(Form { func: &form_set }),
-        "set-car!" => Some(Form {
-            func: &form_set_car,
-        }),
-        "set-cdr!" => Some(Form {
-            func: &form_set_cdr,
-        }),
+        "quote" => Some(form_quote),
+        "begin" => Some(form_begin),
+        "if" => Some(form_if),
+        "cond" => Some(form_cond),
+        "define" => Some(form_define),
+        "lambda" => Some(form_lambda),
+        "let" => Some(form_let),
+        "let*" => Some(form_let_star),
+        "letrec" => Some(form_letrec),
+        "set!" => Some(form_set),
+        "set-car!" => Some(form_set_car),
+        "set-cdr!" => Some(form_set_cdr),
         _ => None,
     }
 }

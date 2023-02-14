@@ -64,7 +64,7 @@ impl Env {
             Value::Pair(car, cdr) => {
                 if let Value::Symbol(name) = car.get() {
                     if let Some(form) = forms::lookup(&name) {
-                        return form.apply(self, cdr.get().to_native_list()?.as_slice());
+                        return form(self, cdr.get().to_native_list()?.as_slice());
                     }
                 }
                 let value = self.evaluate(&car.get())?;
