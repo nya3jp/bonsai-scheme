@@ -68,7 +68,7 @@ impl Env {
                     }
                 }
                 let value = self.evaluate(&car.get())?;
-                let (_, func) = value.as_function()?;
+                let func = value.as_function()?;
                 let mut args = vec![];
                 for expr in cdr.get().to_native_list()? {
                     args.push(self.evaluate(&expr)?);

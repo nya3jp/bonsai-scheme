@@ -79,9 +79,9 @@ impl Value {
         }
     }
 
-    pub fn as_function(&self) -> Result<(&str, &Rc<dyn Function>)> {
-        if let Value::Function(name, func) = self {
-            Ok((name, func))
+    pub fn as_function(&self) -> Result<&dyn Function> {
+        if let Value::Function(_, func) = self {
+            Ok(&**func)
         } else {
             bail!("Not a function");
         }
