@@ -1,6 +1,4 @@
-use std::cell::Ref;
 use std::cell::RefCell;
-use std::cell::RefMut;
 use std::fmt;
 use std::rc::Rc;
 
@@ -33,7 +31,7 @@ impl Value {
         values
             .into_iter()
             .rfold(Value::Null, |list_value, elem_value| {
-                Value::Pair(ValueRef::new(elem_value.clone()), ValueRef::new(list_value))
+                Value::Pair(elem_value.clone().into(), list_value.into())
             })
     }
 
@@ -114,7 +112,7 @@ impl fmt::Display for Value {
             Value::Integer(i) => write!(f, "{}", i),
             Value::Symbol(name) => write!(f, "{}", name),
             Value::Null => write!(f, "()"),
-            Value::Pair(car, cdr) => write!(f, "({} . {})", car, cdr),
+            Value::Pair(car, cdr) => write!(f, "({} . {})", car.borrow(), cdr.borrow()),
             Value::Function(name, _) => write!(f, "{}", name),
         }
     }
@@ -126,45 +124,10 @@ impl fmt::Debug for Value {
     }
 }
 
-#[derive(Clone)]
-pub struct ValueRef {
-    r: Rc<RefCell<Value>>,
-}
+pub type ValueRef = Rc<RefCell<Value>>;
 
-impl ValueRef {
-    pub fn new(value: Value) -> Self {
-        ValueRef {
-            r: Rc::new(RefCell::new(value)),
-        }
-    }
-
-    pub fn borrow(&self) -> Ref<Value> {
-        self.r.borrow()
-    }
-
-    pub fn borrow_mut(&self) -> RefMut<Value> {
-        self.r.borrow_mut()
-    }
-}
-
-impl PartialEq for ValueRef {
-    fn eq(&self, other: &Self) -> bool {
-        let rself = self.r.borrow();
-        let rother = other.r.borrow();
-        rself.eq(&*rother)
-    }
-}
-
-impl fmt::Display for ValueRef {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let r = self.r.borrow();
-        r.fmt(f)
-    }
-}
-
-impl fmt::Debug for ValueRef {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let r = self.r.borrow();
-        r.fmt(f)
+impl From<Value> for ValueRef {
+    fn from(value: Value) -> Self {
+        Rc::new(RefCell::new(value))
     }
 }

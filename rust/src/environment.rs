@@ -33,9 +33,7 @@ impl Env {
     pub fn ensure(env: &Rc<RefCell<Env>>, name: &str) -> ValueRef {
         let mut env_ref = env.borrow_mut();
         if !env_ref.vars.contains_key(name) {
-            env_ref
-                .vars
-                .insert(name.to_string(), ValueRef::new(Value::Null));
+            env_ref.vars.insert(name.to_string(), Value::Null.into());
         }
         env_ref.vars.get(name).unwrap().clone()
     }

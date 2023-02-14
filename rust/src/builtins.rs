@@ -6,7 +6,6 @@ use anyhow::bail;
 use anyhow::Result;
 
 use crate::data::Value;
-use crate::data::ValueRef;
 use crate::environment::Env;
 
 fn builtin_print(args: &[Value]) -> Result<Value> {
@@ -46,10 +45,7 @@ fn builtin_cons(args: &[Value]) -> Result<Value> {
         bail!("cons: Invalid number of arguments");
     }
     let (car, cdr) = (&args[0], &args[1]);
-    Ok(Value::Pair(
-        ValueRef::new(car.clone()),
-        ValueRef::new(cdr.clone()),
-    ))
+    Ok(Value::Pair(car.clone().into(), cdr.clone().into()))
 }
 
 fn builtin_car(args: &[Value]) -> Result<Value> {
