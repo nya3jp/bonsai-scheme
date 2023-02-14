@@ -52,7 +52,7 @@ fn builtin_car(args: &[Value]) -> Result<Value> {
         bail!("car: Invalid number of arguments");
     }
     let (car, _) = args[0].as_pair()?;
-    let value = car.borrow().clone();
+    let value = car.get();
     Ok(value)
 }
 
@@ -61,7 +61,7 @@ fn builtin_cdr(args: &[Value]) -> Result<Value> {
         bail!("cdr: Invalid number of arguments");
     }
     let (_, cdr) = args[0].as_pair()?;
-    let value = cdr.borrow().clone();
+    let value = cdr.get();
     Ok(value)
 }
 
@@ -154,7 +154,7 @@ fn builtin_eq_check(args: &[Value]) -> Result<Value> {
 fn register(env: &Rc<Env>, name: &str, func: &'static dyn Fn(&[Value]) -> Result<Value>) {
     let name = name.to_string();
     let var = env.ensure(&name);
-    *var.borrow_mut() = Value::Function(name, Rc::new(func));
+    var.set(Value::Function(name, Rc::new(func)));
 }
 
 pub fn install(env: &Rc<Env>) {

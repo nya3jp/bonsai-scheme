@@ -22,7 +22,7 @@ pub enum Value {
     Integer(i32),
     Symbol(String),
     Null,
-    Pair(ValueRef, ValueRef),
+    Pair(Rc<ValueRef>, Rc<ValueRef>),
     Function(String, Rc<dyn Function>),
 }
 
@@ -43,8 +43,8 @@ impl Value {
                 match current {
                     Value::Null => break,
                     Value::Pair(car, cdr) => {
-                        values.push(car.borrow().clone());
-                        cdr.borrow().clone()
+                        values.push(car.get());
+                        cdr.get()
                     }
                     _ => bail!("Not a list"),
                 }
@@ -114,7 +114,7 @@ impl fmt::Display for Value {
             Value::Integer(i) => write!(f, "{}", i),
             Value::Symbol(name) => write!(f, "{}", name),
             Value::Null => write!(f, "()"),
-            Value::Pair(car, cdr) => write!(f, "({} . {})", car.borrow(), cdr.borrow()),
+            Value::Pair(car, cdr) => write!(f, "({} . {})", car.get(), cdr.get()),
             Value::Function(name, _) => write!(f, "{}", name),
         }
     }
@@ -126,10 +126,28 @@ impl fmt::Debug for Value {
     }
 }
 
-pub type ValueRef = Rc<RefCell<Value>>;
+pub struct ValueRef {
+    cell: RefCell<Value>,
+}
 
-impl From<Value> for ValueRef {
+impl ValueRef {
+    pub fn new(value: Value) -> Rc<Self> {
+        Rc::new(Self {
+            cell: RefCell::new(value),
+        })
+    }
+
+    pub fn get(&self) -> Value {
+        self.cell.borrow().clone()
+    }
+
+    pub fn set(&self, value: Value) {
+        *self.cell.borrow_mut() = value
+    }
+}
+
+impl From<Value> for Rc<ValueRef> {
     fn from(value: Value) -> Self {
-        Rc::new(RefCell::new(value))
+        ValueRef::new(value)
     }
 }

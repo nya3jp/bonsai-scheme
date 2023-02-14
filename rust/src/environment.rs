@@ -13,7 +13,7 @@ use crate::forms;
 
 pub struct Env {
     parent: Option<Rc<Env>>,
-    vars: RefCell<HashMap<String, ValueRef>>,
+    vars: RefCell<HashMap<String, Rc<ValueRef>>>,
 }
 
 impl Env {
@@ -30,7 +30,7 @@ impl Env {
         })
     }
 
-    pub fn ensure(self: &Rc<Self>, name: &str) -> ValueRef {
+    pub fn ensure(self: &Rc<Self>, name: &str) -> Rc<ValueRef> {
         let mut vars = self.vars.borrow_mut();
         if !vars.contains_key(name) {
             vars.insert(name.to_string(), Value::Null.into());
@@ -39,10 +39,10 @@ impl Env {
     }
 
     pub fn lookup(self: &Rc<Self>, name: &str) -> Option<Value> {
-        self.lookup_ref(name).map(|r| r.borrow().clone())
+        self.lookup_ref(name).map(|r| r.get())
     }
 
-    pub fn lookup_ref(self: &Rc<Self>, name: &str) -> Option<ValueRef> {
+    pub fn lookup_ref(self: &Rc<Self>, name: &str) -> Option<Rc<ValueRef>> {
         {
             let vars = self.vars.borrow();
             if let Some(r) = vars.get(name) {
@@ -62,18 +62,15 @@ impl Env {
             Value::Integer(_) => Ok(expr.clone()),
             Value::Symbol(name) => self.lookup(name).ok_or(anyhow!("Not found: {}", name)),
             Value::Pair(car, cdr) => {
-                {
-                    let rr = car.borrow();
-                    if let Value::Symbol(name) = &*rr {
-                        if let Some(form) = forms::lookup(name) {
-                            return form.apply(self, cdr.borrow().to_native_list()?.as_slice());
-                        }
+                if let Value::Symbol(name) = car.get() {
+                    if let Some(form) = forms::lookup(&name) {
+                        return form.apply(self, cdr.get().to_native_list()?.as_slice());
                     }
                 }
-                let value = self.evaluate(&*car.borrow())?;
+                let value = self.evaluate(&car.get())?;
                 let (_, func) = value.as_function()?;
                 let mut args = vec![];
-                for expr in cdr.borrow().to_native_list()? {
+                for expr in cdr.get().to_native_list()? {
                     args.push(self.evaluate(&expr)?);
                 }
                 func.apply(args.as_slice())

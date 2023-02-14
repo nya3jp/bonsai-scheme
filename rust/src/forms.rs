@@ -74,7 +74,7 @@ impl Function for LambdaFunction {
         let env = Env::new(Some(self.env.clone()));
         for (param, arg) in self.params.iter().zip(args.into_iter()) {
             let var = env.ensure(param);
-            *var.borrow_mut() = arg.clone();
+            var.set(arg.clone());
         }
         evaluate_body(&env, self.body.as_slice())
     }
@@ -109,15 +109,15 @@ fn form_define(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         }
         let value = env.evaluate(&exprs[1])?;
         let var = env.ensure(&name);
-        *var.borrow_mut() = value;
+        var.set(value);
         return Ok(Value::Undef);
     }
 
     let (car, cdr) = target.as_pair()?;
-    let name = car.borrow().as_symbol()?.to_owned();
-    let func_value = make_func_value(env, &name, &*cdr.borrow(), &exprs[1..])?;
+    let name = car.get().as_symbol()?.to_owned();
+    let func_value = make_func_value(env, &name, &cdr.get(), &exprs[1..])?;
     let var = env.ensure(&name);
-    *var.borrow_mut() = func_value;
+    var.set(func_value);
     Ok(Value::Undef)
 }
 
@@ -137,7 +137,7 @@ fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         let name = binding[0].as_symbol()?;
         let value = env.evaluate(&binding[1])?;
         let var = let_env.ensure(&name);
-        *var.borrow_mut() = value.clone();
+        var.set(value.clone());
     }
     evaluate_body(&let_env, &exprs[1..])
 }
@@ -155,7 +155,7 @@ fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         let_env = Env::new(Some(let_env.clone()));
         let value = parent_env.evaluate(&binding[1])?;
         let var = let_env.ensure(&name);
-        *var.borrow_mut() = value.clone();
+        var.set(value.clone());
     }
     evaluate_body(&let_env, &exprs[1..])
 }
@@ -171,7 +171,7 @@ fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         let name = binding[0].as_symbol()?;
         let value = let_env.evaluate(&binding[1])?;
         let var = let_env.ensure(&name);
-        *var.borrow_mut() = value.clone();
+        var.set(value.clone());
     }
     evaluate_body(&let_env, &exprs[1..])
 }
@@ -185,7 +185,7 @@ fn form_set(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let var = env
         .lookup_ref(&name)
         .ok_or(anyhow!("set!: Name not found"))?;
-    *var.borrow_mut() = value;
+    var.set(value);
     Ok(Value::Undef)
 }
 
@@ -196,7 +196,7 @@ fn form_set_car(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let target = env.evaluate(&exprs[0])?;
     let value = env.evaluate(&exprs[1])?;
     if let Value::Pair(car, _) = target {
-        *car.borrow_mut() = value;
+        car.set(value);
     } else {
         bail!("set-car!: Not a pair");
     }
@@ -210,7 +210,7 @@ fn form_set_cdr(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let target = env.evaluate(&exprs[0])?;
     let value = env.evaluate(&exprs[1])?;
     if let Value::Pair(_, cdr) = target {
-        *cdr.borrow_mut() = value;
+        cdr.set(value);
     } else {
         bail!("set-cdr!: Not a pair");
     }
