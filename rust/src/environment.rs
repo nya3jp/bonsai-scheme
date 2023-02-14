@@ -8,12 +8,12 @@ use anyhow::Result;
 
 use crate::builtins;
 use crate::data::Value;
-use crate::data::ValueRef;
+use crate::data::ValueCell;
 use crate::forms;
 
 pub struct Env {
     parent: Option<Rc<Env>>,
-    vars: RefCell<HashMap<String, Rc<ValueRef>>>,
+    vars: RefCell<HashMap<String, Rc<ValueCell>>>,
 }
 
 impl Env {
@@ -30,7 +30,7 @@ impl Env {
         })
     }
 
-    pub fn ensure(self: &Rc<Self>, name: &str) -> Rc<ValueRef> {
+    pub fn ensure(self: &Rc<Self>, name: &str) -> Rc<ValueCell> {
         let mut vars = self.vars.borrow_mut();
         if !vars.contains_key(name) {
             vars.insert(name.to_string(), Value::Null.into());
@@ -42,7 +42,7 @@ impl Env {
         self.lookup_ref(name).map(|r| r.get())
     }
 
-    pub fn lookup_ref(self: &Rc<Self>, name: &str) -> Option<Rc<ValueRef>> {
+    pub fn lookup_ref(self: &Rc<Self>, name: &str) -> Option<Rc<ValueCell>> {
         {
             let vars = self.vars.borrow();
             if let Some(r) = vars.get(name) {

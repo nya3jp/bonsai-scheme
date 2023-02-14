@@ -22,7 +22,7 @@ pub enum Value {
     Integer(i32),
     Symbol(String),
     Null,
-    Pair(Rc<ValueRef>, Rc<ValueRef>),
+    Pair(Rc<ValueCell>, Rc<ValueCell>),
     Function(String, Rc<dyn Function>),
 }
 
@@ -73,7 +73,7 @@ impl Value {
         }
     }
 
-    pub fn as_pair(&self) -> Result<(&ValueRef, &ValueRef)> {
+    pub fn as_pair(&self) -> Result<(&ValueCell, &ValueCell)> {
         if let Value::Pair(car, cdr) = self {
             Ok((car, cdr))
         } else {
@@ -126,11 +126,11 @@ impl fmt::Debug for Value {
     }
 }
 
-pub struct ValueRef {
+pub struct ValueCell {
     cell: RefCell<Value>,
 }
 
-impl ValueRef {
+impl ValueCell {
     pub fn new(value: Value) -> Rc<Self> {
         Rc::new(Self {
             cell: RefCell::new(value),
@@ -146,8 +146,8 @@ impl ValueRef {
     }
 }
 
-impl From<Value> for Rc<ValueRef> {
+impl From<Value> for Rc<ValueCell> {
     fn from(value: Value) -> Self {
-        ValueRef::new(value)
+        ValueCell::new(value)
     }
 }
