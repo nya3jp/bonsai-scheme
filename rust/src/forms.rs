@@ -73,8 +73,7 @@ impl Function for LambdaFunction {
         }
         let env = Env::new(Some(self.env.clone()));
         for (param, arg) in self.params.iter().zip(args.iter()) {
-            let var = env.ensure(param);
-            var.set(arg.clone());
+            env.ensure(param).set(arg.clone());
         }
         evaluate_body(&env, self.body.as_slice())
     }
@@ -108,16 +107,14 @@ fn form_define(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
             bail!("define: Excessive args");
         }
         let value = env.evaluate(&exprs[1])?;
-        let var = env.ensure(name);
-        var.set(value);
+        env.ensure(name).set(value);
         return Ok(Value::Undef);
     }
 
     let (car, cdr) = target.as_pair()?;
     let name = car.get().as_symbol()?.to_owned();
     let func_value = make_func_value(env, &name, &cdr.get(), &exprs[1..])?;
-    let var = env.ensure(&name);
-    var.set(func_value);
+    env.ensure(&name).set(func_value);
     Ok(Value::Undef)
 }
 
@@ -136,8 +133,7 @@ fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         }
         let name = binding[0].as_symbol()?;
         let value = env.evaluate(&binding[1])?;
-        let var = let_env.ensure(name);
-        var.set(value.clone());
+        let_env.ensure(name).set(value);
     }
     evaluate_body(&let_env, &exprs[1..])
 }
@@ -154,8 +150,7 @@ fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         let parent_env = let_env.clone();
         let_env = Env::new(Some(let_env.clone()));
         let value = parent_env.evaluate(&binding[1])?;
-        let var = let_env.ensure(name);
-        var.set(value.clone());
+        let_env.ensure(name).set(value);
     }
     evaluate_body(&let_env, &exprs[1..])
 }
@@ -170,8 +165,7 @@ fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         }
         let name = binding[0].as_symbol()?;
         let value = let_env.evaluate(&binding[1])?;
-        let var = let_env.ensure(name);
-        var.set(value.clone());
+        let_env.ensure(name).set(value);
     }
     evaluate_body(&let_env, &exprs[1..])
 }
@@ -182,10 +176,9 @@ fn form_set(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     }
     let name = exprs[0].as_symbol()?;
     let value = env.evaluate(&exprs[1])?;
-    let var = env
-        .lookup_ref(name)
-        .ok_or(anyhow!("set!: Name not found"))?;
-    var.set(value);
+    env.lookup_ref(name)
+        .ok_or(anyhow!("set!: Name not found"))?
+        .set(value);
     Ok(Value::Undef)
 }
 
