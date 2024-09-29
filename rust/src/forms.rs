@@ -50,7 +50,7 @@ fn form_cond(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
         let clause = expr.to_native_list()?;
         let test_expr = clause.first().ok_or(anyhow!("cond: Malformed condition"))?;
         let test = match test_expr.as_symbol() {
-            Ok(name) if name == "else" => true,
+            Ok("else") => true,
             _ => env.evaluate(test_expr)?.bool(),
         };
         if test {
@@ -101,7 +101,7 @@ fn make_func_value(
 }
 
 fn form_define(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    let target = exprs.get(0).ok_or(anyhow!("define: Malformed args"))?;
+    let target = exprs.first().ok_or(anyhow!("define: Malformed args"))?;
     if let Ok(name) = target.as_symbol() {
         if exprs.len() != 2 {
             bail!("define: Excessive args");
@@ -119,13 +119,13 @@ fn form_define(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 }
 
 fn form_lambda(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    let params_value = exprs.get(0).ok_or(anyhow!("lambda: Malformed args"))?;
+    let params_value = exprs.first().ok_or(anyhow!("lambda: Malformed args"))?;
     make_func_value(env, "<lambda>", params_value, &exprs[1..])
 }
 
 fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let let_env = Env::new(Some(env.clone()));
-    let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
+    let bindings_value = exprs.first().ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
         if binding.len() != 2 {
@@ -140,7 +140,7 @@ fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 
 fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let mut let_env = env.clone();
-    let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
+    let bindings_value = exprs.first().ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
         if binding.len() != 2 {
@@ -157,7 +157,7 @@ fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 
 fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let let_env = Env::new(Some(env.clone()));
-    let bindings_value = exprs.get(0).ok_or(anyhow!("let: Malformed args"))?;
+    let bindings_value = exprs.first().ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
         if binding.len() != 2 {
