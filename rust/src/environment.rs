@@ -1,15 +1,12 @@
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use anyhow::anyhow;
-use anyhow::bail;
-use anyhow::Result;
+use anyhow::{anyhow, bail, Result};
 
-use crate::builtins;
-use crate::data::Value;
-use crate::data::ValueCell;
-use crate::forms;
+use crate::{
+    builtins,
+    data::{Value, ValueCell},
+    forms,
+};
 
 pub struct Env {
     parent: Option<Rc<Env>>,
@@ -61,9 +58,7 @@ impl Env {
 
     pub fn evaluate(self: &Rc<Self>, expr: &Value) -> Result<Value> {
         match expr {
-            Value::Null => Ok(expr.clone()),
-            Value::Boolean(_) => Ok(expr.clone()),
-            Value::Integer(_) => Ok(expr.clone()),
+            Value::Null | Value::Boolean(_) | Value::Integer(_) => Ok(expr.clone()),
             Value::Symbol(name) => self.lookup(name).ok_or(anyhow!("Not found: {}", name)),
             Value::Pair(car, cdr) => {
                 if let Value::Symbol(name) = car.get() {

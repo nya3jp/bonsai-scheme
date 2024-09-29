@@ -1,9 +1,6 @@
-use std::cell::RefCell;
-use std::fmt;
-use std::rc::Rc;
+use std::{cell::RefCell, fmt, rc::Rc};
 
-use anyhow::bail;
-use anyhow::Result;
+use anyhow::{bail, Result};
 
 pub trait Function {
     fn apply(&self, args: &[Value]) -> Result<Value>;
@@ -56,35 +53,31 @@ impl Value {
     }
 
     pub fn as_integer(&self) -> Result<i32> {
-        if let Value::Integer(i) = self {
-            Ok(*i)
-        } else {
+        let Value::Integer(i) = self else {
             bail!("Not an integer");
-        }
+        };
+        Ok(*i)
     }
 
     pub fn as_symbol(&self) -> Result<&str> {
-        if let Value::Symbol(name) = self {
-            Ok(name)
-        } else {
+        let Value::Symbol(name) = self else {
             bail!("Not a symbol");
-        }
+        };
+        Ok(name)
     }
 
     pub fn as_pair(&self) -> Result<(&ValueCell, &ValueCell)> {
-        if let Value::Pair(car, cdr) = self {
-            Ok((car, cdr))
-        } else {
+        let Value::Pair(car, cdr) = self else {
             bail!("Not a pair");
-        }
+        };
+        Ok((car, cdr))
     }
 
     pub fn as_function(&self) -> Result<&dyn Function> {
-        if let Value::Function(_, func) = self {
-            Ok(&**func)
-        } else {
+        let Value::Function(_, func) = self else {
             bail!("Not a function");
-        }
+        };
+        Ok(&**func)
     }
 }
 

@@ -1,12 +1,11 @@
 use std::rc::Rc;
 
-use anyhow::anyhow;
-use anyhow::bail;
-use anyhow::Result;
+use anyhow::{anyhow, bail, ensure, Result};
 
-use crate::data::Function;
-use crate::data::Value;
-use crate::environment::Env;
+use crate::{
+    data::{Function, Value},
+    environment::Env,
+};
 
 fn evaluate_body(env: &Rc<Env>, body: &[Value]) -> Result<Value> {
     let mut value = Value::Undef;
@@ -17,9 +16,7 @@ fn evaluate_body(env: &Rc<Env>, body: &[Value]) -> Result<Value> {
 }
 
 fn form_quote(_: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    if exprs.len() != 1 {
-        bail!("args");
-    }
+    ensure!(exprs.len() == 1, "args");
     Ok(exprs[0].clone())
 }
 
@@ -32,9 +29,7 @@ fn form_begin(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 }
 
 fn form_if(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    if !(exprs.len() == 2 || exprs.len() == 3) {
-        bail!("args");
-    }
+    ensure!(exprs.len() == 2 || exprs.len() == 3, "args");
     let test = env.evaluate(&exprs[0])?.bool();
     if test {
         env.evaluate(&exprs[1])
@@ -68,9 +63,7 @@ struct LambdaFunction {
 
 impl Function for LambdaFunction {
     fn apply(&self, args: &[Value]) -> Result<Value> {
-        if args.len() != self.params.len() {
-            bail!("Wrong number of arguments");
-        }
+        ensure!(args.len() == self.params.len(), "Wrong number of arguments");
         let env = Env::new(Some(self.env.clone()));
         for (param, arg) in self.params.iter().zip(args.iter()) {
             env.ensure(param).set(arg.clone());
@@ -103,9 +96,7 @@ fn make_func_value(
 fn form_define(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let target = exprs.first().ok_or(anyhow!("define: Malformed args"))?;
     if let Ok(name) = target.as_symbol() {
-        if exprs.len() != 2 {
-            bail!("define: Excessive args");
-        }
+        ensure!(exprs.len() == 2, "define: Excessive args");
         let value = env.evaluate(&exprs[1])?;
         env.ensure(name).set(value);
         return Ok(Value::Undef);
@@ -128,9 +119,7 @@ fn form_let(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let bindings_value = exprs.first().ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
-        if binding.len() != 2 {
-            bail!("let: Malformed binding");
-        }
+        ensure!(binding.len() == 2, "let: Malformed binding");
         let name = binding[0].as_symbol()?;
         let value = env.evaluate(&binding[1])?;
         let_env.ensure(name).set(value);
@@ -143,9 +132,7 @@ fn form_let_star(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let bindings_value = exprs.first().ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
-        if binding.len() != 2 {
-            bail!("let: Malformed binding");
-        }
+        ensure!(binding.len() == 2, "let: Malformed binding");
         let name = binding[0].as_symbol()?;
         let parent_env = let_env.clone();
         let_env = Env::new(Some(let_env.clone()));
@@ -160,9 +147,7 @@ fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
     let bindings_value = exprs.first().ok_or(anyhow!("let: Malformed args"))?;
     for binding_value in bindings_value.to_native_list()? {
         let binding = binding_value.to_native_list()?;
-        if binding.len() != 2 {
-            bail!("let: Malformed binding");
-        }
+        ensure!(binding.len() == 2, "let: Malformed binding");
         let name = binding[0].as_symbol()?;
         let value = let_env.evaluate(&binding[1])?;
         let_env.ensure(name).set(value);
@@ -171,9 +156,7 @@ fn form_letrec(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 }
 
 fn form_set(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    if exprs.len() != 2 {
-        bail!("set!: Invalid number of args");
-    }
+    ensure!(exprs.len() == 2, "set!: Invalid number of args");
     let name = exprs[0].as_symbol()?;
     let value = env.evaluate(&exprs[1])?;
     env.lookup_ref(name)
@@ -183,30 +166,24 @@ fn form_set(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
 }
 
 fn form_set_car(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    if exprs.len() != 2 {
-        bail!("set!: Invalid number of args");
-    }
+    ensure!(exprs.len() == 2, "set-car!: Invalid number of args");
     let target = env.evaluate(&exprs[0])?;
     let value = env.evaluate(&exprs[1])?;
-    if let Value::Pair(car, _) = target {
-        car.set(value);
-    } else {
+    let Value::Pair(car, _) = target else {
         bail!("set-car!: Not a pair");
-    }
+    };
+    car.set(value);
     Ok(Value::Undef)
 }
 
 fn form_set_cdr(env: &Rc<Env>, exprs: &[Value]) -> Result<Value> {
-    if exprs.len() != 2 {
-        bail!("set!: Invalid number of args");
-    }
+    ensure!(exprs.len() == 2, "set-cdr!: Invalid number of args");
     let target = env.evaluate(&exprs[0])?;
     let value = env.evaluate(&exprs[1])?;
-    if let Value::Pair(_, cdr) = target {
-        cdr.set(value);
-    } else {
+    let Value::Pair(_, cdr) = target else {
         bail!("set-cdr!: Not a pair");
-    }
+    };
+    cdr.set(value);
     Ok(Value::Undef)
 }
 

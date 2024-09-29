@@ -1,16 +1,11 @@
 use std::rc::Rc;
 
-use anyhow::anyhow;
-use anyhow::bail;
-use anyhow::Result;
+use anyhow::{anyhow, ensure, Result};
 
-use crate::data::Value;
-use crate::environment::Env;
+use crate::{data::Value, environment::Env};
 
 fn builtin_print(args: &[Value]) -> Result<Value> {
-    if args.len() != 1 {
-        bail!("print: Invalid number of arguments");
-    }
+    ensure!(args.len() == 1, "print: Invalid number of arguments");
     println!("{}", args[0]);
     Ok(Value::Undef)
 }
@@ -32,75 +27,57 @@ fn builtin_or(args: &[Value]) -> Result<Value> {
 }
 
 fn builtin_not(args: &[Value]) -> Result<Value> {
-    if args.len() != 1 {
-        bail!("not: Invalid number of arguments");
-    }
+    ensure!(args.len() == 1, "not: Invalid number of arguments");
     let value = &args[0];
     Ok(Value::Boolean(!value.bool()))
 }
 
 fn builtin_cons(args: &[Value]) -> Result<Value> {
-    if args.len() != 2 {
-        bail!("cons: Invalid number of arguments");
-    }
+    ensure!(args.len() == 2, "cons: Invalid number of arguments");
     let (car, cdr) = (&args[0], &args[1]);
     Ok(Value::Pair(car.clone().into(), cdr.clone().into()))
 }
 
 fn builtin_car(args: &[Value]) -> Result<Value> {
-    if args.len() != 1 {
-        bail!("car: Invalid number of arguments");
-    }
+    ensure!(args.len() == 1, "car: Invalid number of arguments");
     let (car, _) = args[0].as_pair()?;
     let value = car.get();
     Ok(value)
 }
 
 fn builtin_cdr(args: &[Value]) -> Result<Value> {
-    if args.len() != 1 {
-        bail!("cdr: Invalid number of arguments");
-    }
+    ensure!(args.len() == 1, "cdr: Invalid number of arguments");
     let (_, cdr) = args[0].as_pair()?;
     let value = cdr.get();
     Ok(value)
 }
 
 fn builtin_eq(args: &[Value]) -> Result<Value> {
-    if args.len() != 2 {
-        bail!("=: Invalid number of arguments");
-    }
+    ensure!(args.len() == 2, "=: Invalid number of arguments");
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(Value::Boolean(a == b))
 }
 
 fn builtin_lt(args: &[Value]) -> Result<Value> {
-    if args.len() != 2 {
-        bail!("<: Invalid number of arguments");
-    }
+    ensure!(args.len() == 2, "<: Invalid number of arguments");
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(Value::Boolean(a < b))
 }
 
 fn builtin_lte(args: &[Value]) -> Result<Value> {
-    if args.len() != 2 {
-        bail!("<=: Invalid number of arguments");
-    }
+    ensure!(args.len() == 2, "<=: Invalid number of arguments");
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(Value::Boolean(a <= b))
 }
 
 fn builtin_gt(args: &[Value]) -> Result<Value> {
-    if args.len() != 2 {
-        bail!(">: Invalid number of arguments");
-    }
+    ensure!(args.len() == 2, ">: Invalid number of arguments");
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(Value::Boolean(a > b))
 }
 
 fn builtin_gte(args: &[Value]) -> Result<Value> {
-    if args.len() != 2 {
-        bail!(">=: Invalid number of arguments");
-    }
+    ensure!(args.len() == 2, ">=: Invalid number of arguments");
     let (a, b) = (args[0].as_integer()?, args[1].as_integer()?);
     Ok(Value::Boolean(a >= b))
 }
@@ -144,9 +121,7 @@ fn builtin_div(args: &[Value]) -> Result<Value> {
 }
 
 fn builtin_eq_check(args: &[Value]) -> Result<Value> {
-    if args.len() != 2 {
-        bail!(">: Invalid number of arguments");
-    }
+    ensure!(args.len() == 2, ">: Invalid number of arguments");
     let (lhs, rhs) = (&args[0], &args[1]);
     Ok(Value::Boolean(lhs == rhs))
 }

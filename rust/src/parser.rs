@@ -1,11 +1,8 @@
 use std::rc::Rc;
 
-use anyhow::anyhow;
-use anyhow::bail;
-use anyhow::Result;
+use anyhow::{anyhow, ensure, Result};
 
-use crate::data::Value;
-use crate::regex::Regex;
+use crate::{data::Value, regex::Regex};
 
 fn make_quote(value: Value) -> Value {
     Value::from_native_list(&[Value::Symbol(Rc::new("quote".to_owned())), value])
@@ -36,9 +33,7 @@ fn parse_value(code: &str) -> Result<(Value, &str)> {
     if let Some(rest_code) = code.strip_prefix('(') {
         let (values, next_code) = parse_list(rest_code)?;
         let next_code = parse_skip(next_code);
-        if !next_code.starts_with(')') {
-            bail!("Parse error");
-        }
+        ensure!(next_code.starts_with(')'), "Parse error");
         return Ok((Value::from_native_list(&values), &next_code[1..]));
     }
 
@@ -80,8 +75,6 @@ fn parse_list(code: &str) -> Result<(Vec<Value>, &str)> {
 
 pub fn parse(code: &str) -> Result<Vec<Value>> {
     let (values, excess_code) = parse_list(code)?;
-    if !excess_code.is_empty() {
-        bail!("Extra code");
-    }
+    ensure!(excess_code.is_empty(), "Extra code");
     Ok(values)
 }

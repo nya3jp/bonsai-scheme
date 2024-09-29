@@ -2,11 +2,12 @@
 extern crate lazy_static;
 extern crate regex;
 
-use std::env;
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
-use std::process::ExitCode;
+use std::{
+    env,
+    fs::File,
+    io::{self, prelude::*},
+    process::ExitCode,
+};
 
 use anyhow::Result;
 
